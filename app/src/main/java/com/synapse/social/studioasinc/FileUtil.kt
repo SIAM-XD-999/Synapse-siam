@@ -280,14 +280,11 @@ object FileUtil {
                         val type = split[0]
 
                         var contentUri: Uri? = null
-                        when ("image" == type) {
-                            true -> contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                            false -> when ("video" == type) {
-                                true -> contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                                false -> when ("audio" == type) {
-                                    true -> contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                                }
-                            }
+                        when (type) { // Changed to directly check type
+                            "image" -> contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                            "video" -> contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                            "audio" -> contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                            else -> contentUri = null // Added else branch for exhaustiveness
                         }
 
                         val selection = "_id=?"
@@ -547,7 +544,7 @@ object FileUtil {
             0f, 0f, 0f, 1f, 0f
         ))
 
-        val bitmap = Bitmap.createBitmap(src.width, src.height, src.config)
+        val bitmap = Bitmap.createBitmap(src.width, src.height, src.config ?: Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint = Paint()
         paint.colorFilter = ColorMatrixColorFilter(cm)
@@ -565,7 +562,7 @@ object FileUtil {
             0f, 0f, 0f, 1f, 0f
         ))
 
-        val bitmap = Bitmap.createBitmap(src.width, src.height, src.config)
+        val bitmap = Bitmap.createBitmap(src.width, src.height, src.config ?: Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint = Paint()
         paint.colorFilter = ColorMatrixColorFilter(cm)

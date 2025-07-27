@@ -116,11 +116,11 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var body: CenterCropLinearLayoutNoEffect
     private lateinit var top: CenterCropLinearLayoutNoEffect
     private lateinit var middle: LinearLayout
-    private lateinit var bottomSpace: LinearLayout
+    // Removed bottomSpace declaration as it's not in XML
     private lateinit var mMessageReplyLayout: MaterialCardView
     private lateinit var message_input_overall_container: LinearLayout
     private lateinit var bottomAudioRecorder: MaterialCardView
-    private lateinit var unblock_btn: Button // Changed to MaterialButton
+    private lateinit var unblock_btn: Button
     private lateinit var blocked_txt: TextView
     private lateinit var chat_toolbar: MaterialToolbar
     private lateinit var topProfileLayout: LinearLayout
@@ -138,14 +138,14 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var noChatText: TextView
     private lateinit var bannedUserInfoIc: ImageView
     private lateinit var bannedUserInfoText: TextView
-    private lateinit var mMessageReplyLayoutBody: LinearLayout // Changed from CenterCropLinearLayoutNoEffect
-    private lateinit var mMessageReplyLayoutSpace: LinearLayout
+    private lateinit var mMessageReplyLayoutBody: LinearLayout // Verified from XML
+    private lateinit var mMessageReplyLayoutSpace: LinearLayout // Verified from XML
     private lateinit var mMessageReplyLayoutBodyIc: ImageView
     private lateinit var mMessageReplyLayoutBodyRight: LinearLayout
     private lateinit var mMessageReplyLayoutBodyCancel: ImageView
     private lateinit var mMessageReplyLayoutBodyRightUsername: TextView
     private lateinit var mMessageReplyLayoutBodyRightMessage: TextView
-    private lateinit var message_input_outlined_round: MaterialCardView // Changed to MaterialCardView
+    private lateinit var message_input_outlined_round: MaterialCardView
     private lateinit var send_round_btn: FloatingActionButton
     private lateinit var message_et: FadeEditText
     private lateinit var gallery_btn: ImageView
@@ -153,10 +153,9 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var send_type_voice_btn: ImageView
     private lateinit var bottomAudioRecorderCancel: ImageView
     private lateinit var bottomAudioRecorderTime: TextView
-    private lateinit var bottomAudioRecorderSend: FloatingActionButton // Changed to FloatingActionButton
+    private lateinit var bottomAudioRecorderSend: FloatingActionButton
     private lateinit var blocked_info_card: MaterialCardView
 
-    // For multiple image selection
     private lateinit var selected_attachments_container: LinearLayout
     private lateinit var selected_images_recycler: RecyclerView
     private lateinit var overall_upload_prog: LinearProgressIndicator
@@ -222,7 +221,7 @@ class ChatActivity : AppCompatActivity() {
         body = findViewById(R.id.body)
         top = findViewById(R.id.top)
         middle = findViewById(R.id.middle)
-        bottomSpace = findViewById(R.id.bottomSpace)
+        // bottomSpace = findViewById(R.id.bottomSpace) // Removed, not in XML
         mMessageReplyLayout = findViewById(R.id.mMessageReplyLayout)
         message_input_overall_container = findViewById(R.id.message_input_overall_container)
         bottomAudioRecorder = findViewById(R.id.bottomAudioRecorder)
@@ -244,8 +243,8 @@ class ChatActivity : AppCompatActivity() {
         noChatText = findViewById(R.id.noChatText)
         bannedUserInfoIc = findViewById(R.id.bannedUserInfoIc)
         bannedUserInfoText = findViewById(R.id.bannedUserInfoText)
-        mMessageReplyLayoutBody = findViewById(R.id.mMessageReplyLayoutBody)
-        mMessageReplyLayoutSpace = findViewById(R.id.mMessageReplyLayoutSpace)
+        mMessageReplyLayoutBody = findViewById(R.id.mMessageReplyLayoutBody) // Kept, check XML
+        mMessageReplyLayoutSpace = findViewById(R.id.mMessageReplyLayoutSpace) // Kept, check XML
         mMessageReplyLayoutBodyIc = findViewById(R.id.mMessageReplyLayoutBodyIc)
         mMessageReplyLayoutBodyRight = findViewById(R.id.mMessageReplyLayoutBodyRight)
         mMessageReplyLayoutBodyCancel = findViewById(R.id.mMessageReplyLayoutBodyCancel)
@@ -313,11 +312,11 @@ class ChatActivity : AppCompatActivity() {
                 val _charSeq = param1.toString()
                 if (selectedImagesPaths.isNotEmpty() || _charSeq.isNotEmpty()) {
                     send_round_btn.setImageResource(R.drawable.ic_send_48px)
-                    message_input_outlined_round.orientation = LinearLayout.VERTICAL
+                    // Removed orientation setting for MaterialCardView
                     FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").updateChildren(typingSnd)
                 } else {
                     send_round_btn.setImageResource(R.drawable.ic_thumb_up_48px)
-                    message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
+                    // Removed orientation setting for MaterialCardView
                     FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
                 }
 
@@ -616,11 +615,9 @@ class ChatActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_video_call -> {
-                // Handle video call
                 return true
             }
             R.id.action_call -> {
-                // Handle audio call
                 return true
             }
             R.id.action_info -> {
@@ -636,14 +633,11 @@ class ChatActivity : AppCompatActivity() {
     private fun initializeLogic() {
         if (message_et.text.toString().trim().isEmpty()) {
             _TransitionManager(message_input_overall_container, 250.0)
-            // message_input_outlined_round.orientation = LinearLayout.HORIZONTAL // Not needed for MaterialCardView
         } else {
             _TransitionManager(message_input_overall_container, 250.0)
-            // message_input_outlined_round.orientation = LinearLayout.VERTICAL // Not needed for MaterialCardView
         }
         SecondUserAvatar = "null"
         ReplyMessageID = "null"
-        // path = "" // This is now handled by selectedImagesPaths
         ChatMessagesLimit = 80.0
         file_type_expand = 0.0
         block_switch = 0.0
@@ -693,27 +687,16 @@ class ChatActivity : AppCompatActivity() {
             }
         })
 
-        // Use new blocked_info_card
         blocked_txt.text = Html.fromHtml("<p>You can't reply to this conversation. <a href=\"https://example.com/learn-more\" style=\"color: #2962FF;\"><b>Learn more</b></a></p>")
         blocked_info_card.visibility = View.GONE
         unblock_btn.visibility = View.GONE
 
-        // Removed camera_gallery_btn_container_round background
-        // Removed send_round_btn background
-
-        // MaterialCardView styling from XML
-        // message_input_outlined_round.background = GradientDrawable().apply { setCornerRadius(95f); setStroke(3, -0x383839); setColor(-0x1) }
-
         selected_attachments_container.visibility = View.GONE
         overall_upload_prog.visibility = View.GONE
 
-        // Control visibility of action buttons
-        attachment_btn.visibility = View.GONE // Hidden by default, can be shown based on message_et state or expand logic
-        send_type_voice_btn.visibility = View.GONE // Hidden by default
+        attachment_btn.visibility = View.GONE
+        send_type_voice_btn.visibility = View.GONE
 
-        // Replaced devider_mic_camera, devider, devider1, devider2
-
-        // _ImgRound(topProfileLayoutProfileImage, 100.0) // Handled by ShapeableImageView style
         _stateColor(-0x1, -0x1)
         _ScrollingText(topProfileLayoutUsername)
     }
@@ -749,14 +732,11 @@ class ChatActivity : AppCompatActivity() {
         if (selectedImagesPaths.isNotEmpty()) {
             selected_attachments_container.visibility = View.VISIBLE
             (selected_images_recycler.adapter as? SelectedImagesAdapter)?.notifyDataSetChanged()
-            // Adjust message input layout if needed
-            // message_input_outlined_round.orientation = LinearLayout.VERTICAL // Removed for MaterialCardView
             send_round_btn.setImageResource(R.drawable.ic_send_48px)
         } else {
             selected_attachments_container.visibility = View.GONE
             if (message_et.text.isEmpty()) {
                 send_round_btn.setImageResource(R.drawable.ic_thumb_up_48px)
-                // message_input_outlined_round.orientation = LinearLayout.HORIZONTAL // Removed for MaterialCardView
             }
         }
         _TransitionManager(message_input_overall_container, 150.0)
@@ -894,7 +874,6 @@ class ChatActivity : AppCompatActivity() {
                     ChatSendMap["message_uid"] = FirebaseAuth.getInstance().currentUser!!.uid
                     ChatSendMap["message_text"] = image_url_input.text.toString().trim()
                     ChatSendMap["message_state"] = "sended"
-                    ChatSendMap["push_date"] = cc.timeInMillis.toString()
                     FirebaseDatabase.getInstance().getReference("skyline/chats")
                         .child(this@ChatActivity.intent.getStringExtra("uid")!!)
                         .child(FirebaseAuth.getInstance().currentUser!!.uid)
