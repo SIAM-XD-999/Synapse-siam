@@ -5,6 +5,7 @@ import android.os.AsyncTask
 import android.util.Log
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
+import com.google.firebase.storage.FirebaseStorage
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -28,10 +29,14 @@ object ImageUploader {
         fun onProgress(filePath: String, progress: Int)
     }
 
+    // Use @JvmStatic to make this method directly accessible as static from Java
+    @JvmStatic
     fun uploadImage(filePath: String, callback: UploadCallback) {
         ImageUploadTask(callback, null).execute(filePath)
     }
 
+    // Use @JvmStatic to make this method directly accessible as static from Java
+    @JvmStatic
     fun uploadImageWithProgress(filePath: String, listener: UploadProgressListener): Task<Uri> {
         val taskCompletionSource = TaskCompletionSource<Uri>()
         ImageUploadTask(
