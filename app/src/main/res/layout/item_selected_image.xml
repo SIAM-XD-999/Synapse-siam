@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="80dp"
+    android:layout_height="80dp"
+    android:layout_marginEnd="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <ImageView
+        android:id="@+id/selected_img_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/avatar" />
+
+    <ImageView
+        android:id="@+id/remove_selected_img_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="4dp"
+        android:background="@drawable/circle_background_red"
+        android:padding="4dp"
+        android:src="@drawable/ic_close_48px"
+        app:tint="@color/white" />
+
+    <!-- Optional: Progress indicator for individual image upload -->
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/image_upload_progress"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:indeterminate="false"
+        android:progress="0"
+        app:indicatorSize="60dp"
+        app:trackColor="@android:color/transparent"
+        app:indicatorColor="@color/colorPrimary"
+        android:visibility="gone" />
+
+</com.google.android.material.card.MaterialCardView>
