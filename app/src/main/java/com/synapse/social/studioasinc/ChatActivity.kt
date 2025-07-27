@@ -168,7 +168,9 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var bottomAudioRecorderTime: TextView
     private lateinit var bottomAudioRecorderSend: ImageView
 
-    private lateinit var intent: Intent
+    // Removed the problematic 'intent' variable declaration
+    // private lateinit var intent: Intent // REMOVE THIS LINE
+
     private lateinit var main: DatabaseReference
     private var _main_child_listener: ChildEventListener? = null
     private lateinit var auth: FirebaseAuth
@@ -199,7 +201,7 @@ class ChatActivity : AppCompatActivity() {
     private var _upload_selected_img_upload_progress_listener: OnProgressListener<UploadTask.TaskSnapshot>? = null
     private var _upload_selected_img_download_progress_listener: OnProgressListener<FileDownloadTask.TaskSnapshot>? = null
     private var _upload_selected_img_failure_listener: OnFailureListener? = null
-    private lateinit var i: Intent
+    private lateinit var i: Intent // Keep this for new intents created in the activity
     private lateinit var zorry: AlertDialog.Builder
     private lateinit var appSettings: SharedPreferences
 
@@ -296,7 +298,7 @@ class ChatActivity : AppCompatActivity() {
         main = _firebase.getReference("skyline")
         blocklist = _firebase.getReference("skyline/blocklist")
         upload_selected_img = _firebase_storage.getReference("synapse/chats/images")
-        i = Intent()
+        i = Intent() // Initialize 'i' here
         cc = Calendar.getInstance()
 
         unblock_btn.setOnClickListener { _Unblock_this_user() }
@@ -305,13 +307,13 @@ class ChatActivity : AppCompatActivity() {
 
         topProfileLayout.setOnClickListener {
             i.setClass(applicationContext, Chat2ndUserMoreSettingsActivity::class.java)
-            i.putExtra("uid", intent.getStringExtra("uid"))
+            i.putExtra("uid", this.intent.getStringExtra("uid")) // Use this.intent
             startActivity(i)
         }
 
         more.setOnClickListener {
             i.setClass(applicationContext, Chat2ndUserMoreSettingsActivity::class.java)
-            i.putExtra("uid", intent.getStringExtra("uid"))
+            i.putExtra("uid", this.intent.getStringExtra("uid")) // Use this.intent
             startActivity(i)
         }
 
@@ -335,7 +337,7 @@ class ChatActivity : AppCompatActivity() {
                         message_input_outlined_round.background = GradientDrawable().apply { setCornerRadius(95f); setStroke(2, -0x383839); setColor(-0x1) }
                         _setMargin(message_et, 0.0, 7.0, 0.0, 0.0)
                         send_ic.setImageResource(R.drawable.ic_thumb_up_48px)
-                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
+                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
                         _TransitionManager(message_input_overall_container, 125.0)
 
                     } else {
@@ -345,7 +347,7 @@ class ChatActivity : AppCompatActivity() {
                         typingSnd = HashMap()
                         typingSnd["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
                         typingSnd["typingMessageStatus"] = "true"
-                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").updateChildren(typingSnd)
+                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").updateChildren(typingSnd)
                         _setMargin(message_et, 0.0, 7.0, 0.0, 20.0)
                         message_input_outlined_round.background = GradientDrawable().apply { setCornerRadius(45f); setStroke(2, -0x383839); setColor(-0x1) }
                         message_input_outlined_round.orientation = LinearLayout.VERTICAL
@@ -357,7 +359,7 @@ class ChatActivity : AppCompatActivity() {
                         message_input_outlined_round.background = GradientDrawable().apply { setCornerRadius(100f); setStroke(2, -0x383839); setColor(-0x1) }
                         _setMargin(message_et, 0.0, 7.0, 0.0, 0.0)
                         send_ic.setImageResource(R.drawable.ic_thumb_up_48px)
-                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
+                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
                         message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
 
                         _TransitionManager(message_input_overall_container, 125.0)
@@ -495,7 +497,7 @@ class ChatActivity : AppCompatActivity() {
                 val _ind = object : GenericTypeIndicator<HashMap<String, Any>>() {}
                 val _childKey = param1.key
                 val _childValue = param1.getValue(_ind)
-                if (_childKey == intent.getStringExtra("uid")) {
+                if (_childKey == this@ChatActivity.intent.getStringExtra("uid")) {
                     if (_childValue!!.containsKey(FirebaseAuth.getInstance().currentUser!!.uid)) {
                         message_input_overall_container.visibility = View.GONE
                         blocked_txt.visibility = View.VISIBLE
@@ -507,7 +509,7 @@ class ChatActivity : AppCompatActivity() {
 
                 }
                 if (_childKey == FirebaseAuth.getInstance().currentUser!!.uid) {
-                    if (_childValue!!.containsKey(intent.getStringExtra("uid"))) {
+                    if (_childValue!!.containsKey(this@ChatActivity.intent.getStringExtra("uid"))) {
                         message_input_overall_container.visibility = View.GONE
                         unblock_btn.visibility = View.VISIBLE
                     } else {
@@ -523,7 +525,7 @@ class ChatActivity : AppCompatActivity() {
                 val _ind = object : GenericTypeIndicator<HashMap<String, Any>>() {}
                 val _childKey = param1.key
                 val _childValue = param1.getValue(_ind)
-                if (_childKey == intent.getStringExtra("uid")) {
+                if (_childKey == this@ChatActivity.intent.getStringExtra("uid")) {
                     if (_childValue!!.containsKey(FirebaseAuth.getInstance().currentUser!!.uid)) {
                         message_input_overall_container.visibility = View.GONE
                         blocked_txt.visibility = View.VISIBLE
@@ -583,16 +585,16 @@ class ChatActivity : AppCompatActivity() {
             }
             ChatSendMap["key"] = uniqueMessageKey!!
             ChatSendMap["push_date"] = cc.timeInMillis.toString()
-            FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(intent.getStringExtra("uid")!!).child(uniqueMessageKey).updateChildren(ChatSendMap)
-            FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(uniqueMessageKey).updateChildren(ChatSendMap)
+            FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(uniqueMessageKey).updateChildren(ChatSendMap)
+            FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(uniqueMessageKey).updateChildren(ChatSendMap)
             ChatInboxSend = HashMap()
-            ChatInboxSend["uid"] = intent.getStringExtra("uid")!!
+            ChatInboxSend["uid"] = this@ChatActivity.intent.getStringExtra("uid")!!
             ChatInboxSend["TYPE"] = "MESSAGE"
             ChatInboxSend["last_message_uid"] = FirebaseAuth.getInstance().currentUser!!.uid
             ChatInboxSend["last_message_text"] = message_et.text.toString().trim()
             ChatInboxSend["last_message_state"] = "sended"
             ChatInboxSend["push_date"] = cc.timeInMillis.toString()
-            FirebaseDatabase.getInstance().getReference("skyline/inbox").child(FirebaseAuth.getInstance().currentUser!!.uid).child(intent.getStringExtra("uid")!!).updateChildren(ChatInboxSend)
+            FirebaseDatabase.getInstance().getReference("skyline/inbox").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).updateChildren(ChatInboxSend)
             ChatInboxSend2 = HashMap()
             ChatInboxSend2["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
             ChatInboxSend2["TYPE"] = "MESSAGE"
@@ -600,7 +602,7 @@ class ChatActivity : AppCompatActivity() {
             ChatInboxSend2["last_message_text"] = message_et.text.toString().trim()
             ChatInboxSend2["last_message_state"] = "sended"
             ChatInboxSend2["push_date"] = cc.timeInMillis.toString()
-            FirebaseDatabase.getInstance().getReference("skyline/inbox").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).updateChildren(ChatInboxSend2)
+            FirebaseDatabase.getInstance().getReference("skyline/inbox").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).updateChildren(ChatInboxSend2)
             message_et.setText("")
             filename = ""
             file = ""
@@ -615,7 +617,7 @@ class ChatActivity : AppCompatActivity() {
 
             img_container_layout.visibility = View.GONE
             img_upload_prog.visibility = View.GONE
-            FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
+            FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
             ChatSendMap.clear()
             ChatInboxSend.clear()
             ChatInboxSend2.clear()
@@ -817,17 +819,20 @@ class ChatActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
+        // Use this.intent to refer to the Activity's original intent
+        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
     }
 
     override fun onStop() {
         super.onStop()
-        FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
+        // Use this.intent to refer to the Activity's original intent
+        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
+        // Use this.intent to refer to the Activity's original intent
+        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
     }
 
     fun _stateColor( _statusColor: Int, _navigationColor: Int) {
@@ -946,14 +951,14 @@ class ChatActivity : AppCompatActivity() {
                     ChatSendMap["push_date"] = cc.timeInMillis.toString()
                     // Updating the chat reference
                     FirebaseDatabase.getInstance().getReference("skyline/chats")
-                        .child(intent.getStringExtra("uid")!!)  // Replacing with the UID from the intent extras
+                        .child(this@ChatActivity.intent.getStringExtra("uid")!!)  // Replacing with the UID from the intent extras
                         .child(FirebaseAuth.getInstance().currentUser!!.uid)  // Replacing with the current user UID
                         .child(_data[_position.toInt()]["key"].toString())  // Using the key from your data
                         .updateChildren(ChatSendMap)  // Ensure ChatSendMap contains the necessary data for the update
                     // Updating the chat reference
                     FirebaseDatabase.getInstance().getReference("skyline/chats")
                         .child(FirebaseAuth.getInstance().currentUser!!.uid)  // My UID
-                        .child(intent.getStringExtra("uid")!!)  // His UID from the intent extras
+                        .child(this@ChatActivity.intent.getStringExtra("uid")!!)  // His UID from the intent extras
                         .child(_data[_position.toInt()]["key"].toString())  // Using the key from your data
                         .updateChildren(ChatSendMap)  // Ensure ChatSendMap contains the necessary data for the update
                     cd!!.dismiss()
@@ -1010,7 +1015,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     fun _getUserReference() {
-        val getUserReference = FirebaseDatabase.getInstance().getReference("skyline/users").child(intent.getStringExtra("uid")!!)
+        val getUserReference = FirebaseDatabase.getInstance().getReference("skyline/users").child(this.intent.getStringExtra("uid")!!) // Use this.intent
         getUserReference.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(@NonNull dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -1118,7 +1123,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     fun _getChatMessagesRef() {
-        val getChatsMessages = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(intent.getStringExtra("uid")!!).limitToLast(ChatMessagesLimit.toInt())
+        val getChatsMessages = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this.intent.getStringExtra("uid")!!).limitToLast(ChatMessagesLimit.toInt()) // Use this.intent
         getChatsMessages.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(@NonNull dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -1228,7 +1233,7 @@ class ChatActivity : AppCompatActivity() {
             val mMainHandler = Handler(Looper.getMainLooper())
 
             mExecutorService.execute {
-                val getChatsMessages = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(intent.getStringExtra("uid")!!).limitToLast(ChatMessagesLimit.toInt())
+                val getChatsMessages = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).limitToLast(ChatMessagesLimit.toInt()) // Use this.intent
                 getChatsMessages.addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(@NonNull dataSnapshot: DataSnapshot) {
                         mMainHandler.post {
@@ -1272,8 +1277,8 @@ class ChatActivity : AppCompatActivity() {
         zorry.setMessage("Are you sure you want to delete this message. Please confirm your decision.")
         zorry.setIcon(R.drawable.popup_ic_3)
         zorry.setPositiveButton("Delete") { _dialog, _which ->
-            FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(intent.getStringExtra("uid")!!).child(_data[_position.toInt()]["key"].toString()).removeValue()
-            FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(_data[_position.toInt()]["key"].toString()).removeValue()
+            FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(_data[_position.toInt()]["key"].toString()).removeValue() // Use this.intent
+            FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(_data[_position.toInt()]["key"].toString()).removeValue() // Use this.intent
         }
         zorry.setNegativeButton("No") { _dialog, _which ->
 
@@ -1296,7 +1301,7 @@ class ChatActivity : AppCompatActivity() {
 
         var seconds = time_diff / 1000
         var minutes = seconds / 60
-        var hours = minutes / 60
+        val hours = minutes / 60
         val days = hours / 24
         val weeks = days / 7
         val months = days / 30
@@ -1429,9 +1434,9 @@ class ChatActivity : AppCompatActivity() {
                         override fun onDataChange(@NonNull dataSnapshot: DataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 if (dataSnapshot.child("uid").getValue(String::class.java) != "null") {
-                                    intent.setClass(applicationContext, ProfileActivity::class.java)
-                                    intent.putExtra("uid", dataSnapshot.child("uid").getValue(String::class.java))
-                                    startActivity(intent)
+                                    i.setClass(applicationContext, ProfileActivity::class.java) // Use 'i'
+                                    i.putExtra("uid", dataSnapshot.child("uid").getValue(String::class.java))
+                                    startActivity(i) // Use 'i'
                                 } else {
 
                                 }
@@ -1484,16 +1489,16 @@ class ChatActivity : AppCompatActivity() {
                 }
                 ChatSendMap["key"] = uniqueMessageKey!!
                 ChatSendMap["push_date"] = cc.timeInMillis.toString()
-                FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(intent.getStringExtra("uid")!!).child(uniqueMessageKey).updateChildren(ChatSendMap)
-                FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(uniqueMessageKey).updateChildren(ChatSendMap)
+                FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this.intent.getStringExtra("uid")!!).child(uniqueMessageKey).updateChildren(ChatSendMap) // Use this.intent
+                FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(uniqueMessageKey).updateChildren(ChatSendMap) // Use this.intent
                 ChatInboxSend = HashMap()
-                ChatInboxSend["uid"] = intent.getStringExtra("uid")!!
+                ChatInboxSend["uid"] = this.intent.getStringExtra("uid")!! // Use this.intent
                 ChatInboxSend["TYPE"] = "MESSAGE"
                 ChatInboxSend["last_message_uid"] = FirebaseAuth.getInstance().currentUser!!.uid
                 ChatInboxSend["last_message_text"] = message_et.text.toString().trim()
                 ChatInboxSend["last_message_state"] = "sended"
                 ChatInboxSend["push_date"] = cc.timeInMillis.toString()
-                FirebaseDatabase.getInstance().getReference("skyline/inbox").child(FirebaseAuth.getInstance().currentUser!!.uid).child(intent.getStringExtra("uid")!!).updateChildren(ChatInboxSend)
+                FirebaseDatabase.getInstance().getReference("skyline/inbox").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this.intent.getStringExtra("uid")!!).updateChildren(ChatInboxSend) // Use this.intent
                 ChatInboxSend2 = HashMap()
                 ChatInboxSend2["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
                 ChatInboxSend2["TYPE"] = "MESSAGE"
@@ -1501,7 +1506,7 @@ class ChatActivity : AppCompatActivity() {
                 ChatInboxSend2["last_message_text"] = message_et.text.toString().trim()
                 ChatInboxSend2["last_message_state"] = "sended"
                 ChatInboxSend2["push_date"] = cc.timeInMillis.toString()
-                FirebaseDatabase.getInstance().getReference("skyline/inbox").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).updateChildren(ChatInboxSend2)
+                FirebaseDatabase.getInstance().getReference("skyline/inbox").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).updateChildren(ChatInboxSend2) // Use this.intent
                 message_et.setText("")
                 devider2.visibility = View.GONE
                 devider1.visibility = View.GONE
@@ -1513,7 +1518,7 @@ class ChatActivity : AppCompatActivity() {
                 _TransitionManager(camera_gallery_btn_container_round, 200.0)
                 message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
 
-                FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
+                FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue() // Use this.intent
                 ChatSendMap.clear()
                 ChatInboxSend.clear()
                 ChatInboxSend2.clear()
@@ -1538,16 +1543,16 @@ class ChatActivity : AppCompatActivity() {
                     }
                     ChatSendMap["key"] = uniqueMessageKey!!
                     ChatSendMap["push_date"] = cc.timeInMillis.toString()
-                    FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(intent.getStringExtra("uid")!!).child(uniqueMessageKey).updateChildren(ChatSendMap)
-                    FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(uniqueMessageKey).updateChildren(ChatSendMap)
+                    FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(uniqueMessageKey).updateChildren(ChatSendMap) // Use this.intent
+                    FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(uniqueMessageKey).updateChildren(ChatSendMap) // Use this.intent
                     ChatInboxSend = HashMap()
-                    ChatInboxSend["uid"] = intent.getStringExtra("uid")!!
+                    ChatInboxSend["uid"] = this@ChatActivity.intent.getStringExtra("uid")!! // Use this.intent
                     ChatInboxSend["TYPE"] = "MESSAGE"
                     ChatInboxSend["last_message_uid"] = FirebaseAuth.getInstance().currentUser!!.uid
                     ChatInboxSend["last_message_text"] = message_et.text.toString().trim()
                     ChatInboxSend["last_message_state"] = "sended"
                     ChatInboxSend["push_date"] = cc.timeInMillis.toString()
-                    FirebaseDatabase.getInstance().getReference("skyline/inbox").child(FirebaseAuth.getInstance().currentUser!!.uid).child(intent.getStringExtra("uid")!!).updateChildren(ChatInboxSend)
+                    FirebaseDatabase.getInstance().getReference("skyline/inbox").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).updateChildren(ChatInboxSend) // Use this.intent
                     ChatInboxSend2 = HashMap()
                     ChatInboxSend2["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
                     ChatInboxSend2["TYPE"] = "MESSAGE"
@@ -1555,7 +1560,7 @@ class ChatActivity : AppCompatActivity() {
                     ChatInboxSend2["last_message_text"] = message_et.text.toString().trim()
                     ChatInboxSend2["last_message_state"] = "sended"
                     ChatInboxSend2["push_date"] = cc.timeInMillis.toString()
-                    FirebaseDatabase.getInstance().getReference("skyline/inbox").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).updateChildren(ChatInboxSend2)
+                    FirebaseDatabase.getInstance().getReference("skyline/inbox").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).updateChildren(ChatInboxSend2) // Use this.intent
                     message_et.setText("")
                     filename = ""
                     file = ""
@@ -1571,7 +1576,7 @@ class ChatActivity : AppCompatActivity() {
 
                     img_container_layout.visibility = View.GONE
                     img_upload_prog.visibility = View.GONE
-                    FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
+                    FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue() // Use this.intent
                     ChatSendMap.clear()
                     ChatInboxSend.clear()
                     ChatInboxSend2.clear()
@@ -1604,12 +1609,12 @@ class ChatActivity : AppCompatActivity() {
     fun _Unblock_this_user() {
         val blocklistRef = FirebaseDatabase.getInstance().getReference("skyline/blocklist")
         val myUid = FirebaseAuth.getInstance().currentUser!!.uid
-        val uidToRemove = intent.getStringExtra("uid")
+        val uidToRemove = this.intent.getStringExtra("uid") // Use this.intent
 
         blocklistRef.child(myUid).child(uidToRemove!!).removeValue()
         // This code will restart the activity
         finish()
-        startActivity(intent)
+        startActivity(this.intent) // Use this.intent
     }
 
     fun _LoadingDialog( _visibility: Boolean) {
@@ -1840,7 +1845,7 @@ _textview_mh(message_text, _data.get((int)_position).get("message_text").toStrin
                         val mMainHandler = Handler(Looper.getMainLooper())
 
                         mExecutorService.execute {
-                            val getRepliedMessageRef = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(intent.getStringExtra("uid")!!).child(_data[_position]["replied_message_id"].toString())
+                            val getRepliedMessageRef = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(_data[_position]["replied_message_id"].toString()) // Use this.intent
                             getRepliedMessageRef.addListenerForSingleValueEvent(object : ValueEventListener {
                                 override fun onDataChange(@NonNull dataSnapshot: DataSnapshot) {
                                     mMainHandler.post {
@@ -1956,9 +1961,9 @@ _textview_mh(message_text, _data.get((int)_position).get("message_text").toStrin
                 }
                 if (_data[_position]["uid"].toString() != FirebaseAuth.getInstance().currentUser!!.uid) {
                     if (_data[_position]["message_state"].toString() == "sended") {
-                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(_data[_position]["key"].toString()).child("message_state").setValue("seen")
-                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(intent.getStringExtra("uid")!!).child(_data[_position]["key"].toString()).child("message_state").setValue("seen")
-                        FirebaseDatabase.getInstance().getReference("skyline/inbox").child(intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("last_message_state").setValue("seen")
+                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(_data[_position]["key"].toString()).child("message_state").setValue("seen") // Use this.intent
+                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(_data[_position]["key"].toString()).child("message_state").setValue("seen") // Use this.intent
+                        FirebaseDatabase.getInstance().getReference("skyline/inbox").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("last_message_state").setValue("seen") // Use this.intent
                     }
                 }
                 lottie1.visibility = View.GONE
@@ -1977,9 +1982,9 @@ _textview_mh(message_text, _data.get((int)_position).get("message_text").toStrin
                 true
             }
             mProfileImage.setOnClickListener {
-                intent.setClass(applicationContext, ProfileActivity::class.java)
-                intent.putExtra("uid", intent.getStringExtra("uid"))
-                startActivity(intent)
+                i.setClass(applicationContext, ProfileActivity::class.java) // Use 'i'
+                i.putExtra("uid", this@ChatActivity.intent.getStringExtra("uid")) // Use this.intent
+                startActivity(i) // Use 'i'
             }
             try {
                 //Retrieve text size from settings
