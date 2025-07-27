@@ -12,7 +12,7 @@ import android.media.*
 import android.net.Uri
 import android.os.*
 import android.text.*
-import android.text.method.LinkMovementMethod // Added this import
+import android.text.method.LinkMovementMethod
 import android.text.style.*
 import android.util.*
 import android.view.*
@@ -35,6 +35,7 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.firebase.FirebaseApp
@@ -71,6 +72,11 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
 import androidx.browser.customtabs.CustomTabsIntent
 import com.synapse.social.studioasinc.styling.TextStylingUtil
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.imageview.ShapeableImageView
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.progressindicator.CircularProgressIndicator
 
 class ChatActivity : AppCompatActivity() {
 
@@ -102,7 +108,6 @@ class ChatActivity : AppCompatActivity() {
     private var file_type_expand = 0.0
     private var AddFromUrlStr = ""
     private var IMG_BB_API_KEY = ""
-    private var path = ""
     private var imageUrl = ""
     private var AndroidDevelopersBlogURL = ""
 
@@ -112,20 +117,17 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var top: CenterCropLinearLayoutNoEffect
     private lateinit var middle: LinearLayout
     private lateinit var bottomSpace: LinearLayout
-    private lateinit var mMessageReplyLayout: LinearLayout
+    private lateinit var mMessageReplyLayout: MaterialCardView
     private lateinit var message_input_overall_container: LinearLayout
-    private lateinit var bottomAudioRecorder: CenterCropLinearLayoutNoEffect
-    private lateinit var unblock_btn: TextView
+    private lateinit var bottomAudioRecorder: MaterialCardView
+    private lateinit var unblock_btn: Button // Changed to MaterialButton
     private lateinit var blocked_txt: TextView
-    private lateinit var back: ImageView
+    private lateinit var chat_toolbar: MaterialToolbar
     private lateinit var topProfileLayout: LinearLayout
     private lateinit var topProfileLayoutSpace: LinearLayout
-    private lateinit var imageview2: ImageView
-    private lateinit var imageview1: ImageView
-    private lateinit var more: ImageView
     private lateinit var topProfileCard: CardView
     private lateinit var topProfileLayoutRight: LinearLayout
-    private lateinit var topProfileLayoutProfileImage: ImageView
+    private lateinit var topProfileLayoutProfileImage: ShapeableImageView
     private lateinit var topProfileLayoutRightTop: LinearLayout
     private lateinit var topProfileLayoutStatus: TextView
     private lateinit var topProfileLayoutUsername: TextView
@@ -136,40 +138,31 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var noChatText: TextView
     private lateinit var bannedUserInfoIc: ImageView
     private lateinit var bannedUserInfoText: TextView
-    private lateinit var mMessageReplyLayoutBody: CenterCropLinearLayoutNoEffect
+    private lateinit var mMessageReplyLayoutBody: LinearLayout // Changed from CenterCropLinearLayoutNoEffect
     private lateinit var mMessageReplyLayoutSpace: LinearLayout
     private lateinit var mMessageReplyLayoutBodyIc: ImageView
     private lateinit var mMessageReplyLayoutBodyRight: LinearLayout
     private lateinit var mMessageReplyLayoutBodyCancel: ImageView
     private lateinit var mMessageReplyLayoutBodyRightUsername: TextView
     private lateinit var mMessageReplyLayoutBodyRightMessage: TextView
-    private lateinit var message_input_outlined_round: LinearLayout
-    private lateinit var send_round_btn: LinearLayout
-    private lateinit var img_container_layout: LinearLayout
+    private lateinit var message_input_outlined_round: MaterialCardView // Changed to MaterialCardView
+    private lateinit var send_round_btn: FloatingActionButton
     private lateinit var message_et: FadeEditText
-    private lateinit var camera_gallery_btn_container_round: LinearLayout
-    private lateinit var imgRoundLayout: CardView
-    private lateinit var remove_selected_img_icon: ImageView
-    private lateinit var img_name_container: LinearLayout
-    private lateinit var selected_img_preview: ImageView
-    private lateinit var img_name: TextView
-    private lateinit var img_upload_prog: LinearProgressIndicator
-    private lateinit var expand_send_type_btn: ImageView
-    private lateinit var devider_mic_camera: LinearLayout
     private lateinit var gallery_btn: ImageView
-    private lateinit var devider: LinearLayout
     private lateinit var attachment_btn: ImageView
-    private lateinit var devider1: LinearLayout
     private lateinit var send_type_voice_btn: ImageView
-    private lateinit var devider2: LinearLayout
-    private lateinit var more_send_type_btn: ImageView
-    private lateinit var send_ic: ImageView
     private lateinit var bottomAudioRecorderCancel: ImageView
     private lateinit var bottomAudioRecorderTime: TextView
-    private lateinit var bottomAudioRecorderSend: ImageView
+    private lateinit var bottomAudioRecorderSend: FloatingActionButton // Changed to FloatingActionButton
+    private lateinit var blocked_info_card: MaterialCardView
 
-    // Removed the problematic 'intent' variable declaration
-    // private lateinit var intent: Intent // REMOVE THIS LINE
+    // For multiple image selection
+    private lateinit var selected_attachments_container: LinearLayout
+    private lateinit var selected_images_recycler: RecyclerView
+    private lateinit var overall_upload_prog: LinearProgressIndicator
+
+    private val selectedImagesPaths = ArrayList<String>()
+    private val uploadProgressMap = HashMap<String, Int>()
 
     private lateinit var main: DatabaseReference
     private var _main_child_listener: ChildEventListener? = null
@@ -201,7 +194,7 @@ class ChatActivity : AppCompatActivity() {
     private var _upload_selected_img_upload_progress_listener: OnProgressListener<UploadTask.TaskSnapshot>? = null
     private var _upload_selected_img_download_progress_listener: OnProgressListener<FileDownloadTask.TaskSnapshot>? = null
     private var _upload_selected_img_failure_listener: OnFailureListener? = null
-    private lateinit var i: Intent // Keep this for new intents created in the activity
+    private lateinit var i: Intent
     private lateinit var zorry: AlertDialog.Builder
     private lateinit var appSettings: SharedPreferences
 
@@ -235,12 +228,9 @@ class ChatActivity : AppCompatActivity() {
         bottomAudioRecorder = findViewById(R.id.bottomAudioRecorder)
         unblock_btn = findViewById(R.id.unblock_btn)
         blocked_txt = findViewById(R.id.blocked_txt)
-        back = findViewById(R.id.back)
+        chat_toolbar = findViewById(R.id.chat_toolbar)
         topProfileLayout = findViewById(R.id.topProfileLayout)
         topProfileLayoutSpace = findViewById(R.id.topProfileLayoutSpace)
-        imageview2 = findViewById(R.id.imageview2)
-        imageview1 = findViewById(R.id.imageview1)
-        more = findViewById(R.id.more)
         topProfileCard = findViewById(R.id.topProfileCard)
         topProfileLayoutRight = findViewById(R.id.topProfileLayoutRight)
         topProfileLayoutProfileImage = findViewById(R.id.topProfileLayoutProfileImage)
@@ -263,28 +253,19 @@ class ChatActivity : AppCompatActivity() {
         mMessageReplyLayoutBodyRightMessage = findViewById(R.id.mMessageReplyLayoutBodyRightMessage)
         message_input_outlined_round = findViewById(R.id.message_input_outlined_round)
         send_round_btn = findViewById(R.id.send_round_btn)
-        img_container_layout = findViewById(R.id.img_container_layout)
         message_et = findViewById(R.id.message_et)
-        camera_gallery_btn_container_round = findViewById(R.id.camera_gallery_btn_container_round)
-        imgRoundLayout = findViewById(R.id.imgRoundLayout)
-        remove_selected_img_icon = findViewById(R.id.remove_selected_img_icon)
-        img_name_container = findViewById(R.id.img_name_container)
-        selected_img_preview = findViewById(R.id.selected_img_preview)
-        img_name = findViewById(R.id.img_name)
-        img_upload_prog = findViewById(R.id.img_upload_prog)
-        expand_send_type_btn = findViewById(R.id.expand_send_type_btn)
-        devider_mic_camera = findViewById(R.id.devider_mic_camera)
         gallery_btn = findViewById(R.id.gallery_btn)
-        devider = findViewById(R.id.devider)
         attachment_btn = findViewById(R.id.attachment_btn)
-        devider1 = findViewById(R.id.devider1)
         send_type_voice_btn = findViewById(R.id.send_type_voice_btn)
-        devider2 = findViewById(R.id.devider2)
-        more_send_type_btn = findViewById(R.id.more_send_type_btn)
-        send_ic = findViewById(R.id.send_ic)
         bottomAudioRecorderCancel = findViewById(R.id.bottomAudioRecorderCancel)
         bottomAudioRecorderTime = findViewById(R.id.bottomAudioRecorderTime)
         bottomAudioRecorderSend = findViewById(R.id.bottomAudioRecorderSend)
+        blocked_info_card = findViewById(R.id.blocked_info_card)
+
+        selected_attachments_container = findViewById(R.id.selected_attachments_container)
+        selected_images_recycler = findViewById(R.id.selected_images_recycler)
+        overall_upload_prog = findViewById(R.id.overall_upload_prog)
+
         auth = FirebaseAuth.getInstance()
         vbr = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         blocked = getSharedPreferences("block", Activity.MODE_PRIVATE)
@@ -298,22 +279,22 @@ class ChatActivity : AppCompatActivity() {
         main = _firebase.getReference("skyline")
         blocklist = _firebase.getReference("skyline/blocklist")
         upload_selected_img = _firebase_storage.getReference("synapse/chats/images")
-        i = Intent() // Initialize 'i' here
+        i = Intent()
         cc = Calendar.getInstance()
+
+        setSupportActionBar(chat_toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        selected_images_recycler.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        selected_images_recycler.adapter = SelectedImagesAdapter(selectedImagesPaths, uploadProgressMap)
 
         unblock_btn.setOnClickListener { _Unblock_this_user() }
 
-        back.setOnClickListener { onBackPressed() }
+        chat_toolbar.setNavigationOnClickListener { onBackPressed() }
 
         topProfileLayout.setOnClickListener {
             i.setClass(applicationContext, Chat2ndUserMoreSettingsActivity::class.java)
-            i.putExtra("uid", this.intent.getStringExtra("uid")) // Use this.intent
-            startActivity(i)
-        }
-
-        more.setOnClickListener {
-            i.setClass(applicationContext, Chat2ndUserMoreSettingsActivity::class.java)
-            i.putExtra("uid", this.intent.getStringExtra("uid")) // Use this.intent
+            i.putExtra("uid", this.intent.getStringExtra("uid"))
             startActivity(i)
         }
 
@@ -330,46 +311,20 @@ class ChatActivity : AppCompatActivity() {
         message_et.addTextChangedListener(object : TextWatcher {
             override fun onTextChanged(param1: CharSequence, param2: Int, param3: Int, param4: Int) {
                 val _charSeq = param1.toString()
-                if (img_container_layout.visibility == View.VISIBLE || (file_type_expand == 1.0)) {
-                    if (_charSeq.isEmpty()) {
-                        message_input_outlined_round.orientation = LinearLayout.VERTICAL
-
-                        message_input_outlined_round.background = GradientDrawable().apply { setCornerRadius(95f); setStroke(2, -0x383839); setColor(-0x1) }
-                        _setMargin(message_et, 0.0, 7.0, 0.0, 0.0)
-                        send_ic.setImageResource(R.drawable.ic_thumb_up_48px)
-                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
-                        _TransitionManager(message_input_overall_container, 125.0)
-
-                    } else {
-                        message_input_outlined_round.orientation = LinearLayout.VERTICAL
-
-                        _TransitionManager(message_input_overall_container, 125.0)
-                        typingSnd = HashMap()
-                        typingSnd["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
-                        typingSnd["typingMessageStatus"] = "true"
-                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").updateChildren(typingSnd)
-                        _setMargin(message_et, 0.0, 7.0, 0.0, 20.0)
-                        message_input_outlined_round.background = GradientDrawable().apply { setCornerRadius(45f); setStroke(2, -0x383839); setColor(-0x1) }
-                        message_input_outlined_round.orientation = LinearLayout.VERTICAL
-
-                        send_ic.setImageResource(R.drawable.ic_send_48px)
-                    }
+                if (selectedImagesPaths.isNotEmpty() || _charSeq.isNotEmpty()) {
+                    send_round_btn.setImageResource(R.drawable.ic_send_48px)
+                    message_input_outlined_round.orientation = LinearLayout.VERTICAL
+                    FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").updateChildren(typingSnd)
                 } else {
-                    if (_charSeq.isEmpty()) {
-                        message_input_outlined_round.background = GradientDrawable().apply { setCornerRadius(100f); setStroke(2, -0x383839); setColor(-0x1) }
-                        _setMargin(message_et, 0.0, 7.0, 0.0, 0.0)
-                        send_ic.setImageResource(R.drawable.ic_thumb_up_48px)
-                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
-                        message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
-
-                        _TransitionManager(message_input_overall_container, 125.0)
-                    } else {
-                        _TransitionManager(message_input_overall_container, 125.0)
-                        message_input_outlined_round.orientation = LinearLayout.VERTICAL
-
-                        send_ic.setImageResource(R.drawable.ic_send_48px)
-                    }
+                    send_round_btn.setImageResource(R.drawable.ic_thumb_up_48px)
+                    message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
+                    FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
                 }
+
+                _TransitionManager(message_input_overall_container, 125.0)
+                typingSnd = HashMap()
+                typingSnd["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
+                typingSnd["typingMessageStatus"] = "true"
             }
 
             override fun beforeTextChanged(param1: CharSequence, param2: Int, param3: Int, param4: Int) {
@@ -381,66 +336,15 @@ class ChatActivity : AppCompatActivity() {
             }
         })
 
-        remove_selected_img_icon.setOnClickListener {
-            img_container_layout.visibility = View.GONE
-            file = ""
-            path = ""
-            filename = ""
-            _TransitionManager(message_input_outlined_round, 125.0)
-            if (message_et.text.toString().equals("")) {
-                if (file_type_expand == 1.0) {
-                    message_input_outlined_round.orientation = LinearLayout.VERTICAL
-
-                } else {
-                    message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
-
-                }
-            } else {
-                message_input_outlined_round.orientation = LinearLayout.VERTICAL
-
-            }
-            message_input_outlined_round.background = GradientDrawable().apply { setCornerRadius(87f); setStroke(3, -0x383839); setColor(-0x1) }
+        gallery_btn.setOnClickListener {
+            image_picker.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            startActivityForResult(image_picker, REQ_CD_IMAGE_PICKER)
         }
 
-        expand_send_type_btn.setOnClickListener {
-            if (file_type_expand == 0.0) {
-                file_type_expand++
-                devider2.visibility = View.VISIBLE
-                devider1.visibility = View.VISIBLE
-                devider.visibility = View.VISIBLE
-                more_send_type_btn.visibility = View.VISIBLE
-                send_type_voice_btn.visibility = View.VISIBLE
-                attachment_btn.visibility = View.VISIBLE
-                _TransitionManager(camera_gallery_btn_container_round, 200.0)
-                _ImageColor(expand_send_type_btn, -0xd69de1)
-                message_input_outlined_round.orientation = LinearLayout.VERTICAL
-
-            } else {
-                file_type_expand--
-                devider2.visibility = View.GONE
-                devider1.visibility = View.GONE
-                devider.visibility = View.GONE
-                more_send_type_btn.visibility = View.GONE
-                send_type_voice_btn.visibility = View.GONE
-                attachment_btn.visibility = View.GONE
-                _TransitionManager(camera_gallery_btn_container_round, 200.0)
-                _ImageColor(expand_send_type_btn, -0x3a3a3c)
-                if (message_et.text.toString().equals("")) {
-                    if (img_container_layout.visibility == View.VISIBLE) {
-                        message_input_outlined_round.orientation = LinearLayout.VERTICAL
-
-                    } else {
-                        message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
-
-                    }
-                } else {
-                    message_input_outlined_round.orientation = LinearLayout.VERTICAL
-
-                }
-            }
+        attachment_btn.setOnClickListener {
+            image_picker.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            startActivityForResult(image_picker, REQ_CD_IMAGE_PICKER)
         }
-
-        gallery_btn.setOnClickListener { startActivityForResult(image_picker, REQ_CD_IMAGE_PICKER) }
 
         send_type_voice_btn.setOnClickListener {
             if (Build.VERSION.SDK_INT >= 23) {
@@ -456,7 +360,7 @@ class ChatActivity : AppCompatActivity() {
 
         bottomAudioRecorderCancel.setOnClickListener { _AudioRecorderStop() }
 
-        bottomAudioRecorderTime.setOnClickListener { message_input_outlined_round.background = GradientDrawable().apply { setCornerRadius(message_et.text.toString().toDouble().toFloat()); setStroke(2, -0x383839); setColor(-0x1) } }
+        bottomAudioRecorderTime.setOnClickListener { }
 
         _main_child_listener = object : ChildEventListener {
             override fun onChildAdded(param1: DataSnapshot, param2: String?) {
@@ -495,46 +399,59 @@ class ChatActivity : AppCompatActivity() {
         _blocklist_child_listener = object : ChildEventListener {
             override fun onChildAdded(param1: DataSnapshot, param2: String?) {
                 val _ind = object : GenericTypeIndicator<HashMap<String, Any>>() {}
-                val _childKey = param1.key
                 val _childValue = param1.getValue(_ind)
-                if (_childKey == this@ChatActivity.intent.getStringExtra("uid")) {
-                    if (_childValue!!.containsKey(FirebaseAuth.getInstance().currentUser!!.uid)) {
+                if (_childValue == null) return
+
+                val targetUid = this@ChatActivity.intent.getStringExtra("uid")
+                val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
+
+                if (param1.key == targetUid) {
+                    if (_childValue.containsKey(currentUserUid)) {
                         message_input_overall_container.visibility = View.GONE
-                        blocked_txt.visibility = View.VISIBLE
+                        blocked_info_card.visibility = View.VISIBLE
+                        unblock_btn.visibility = View.GONE
                     } else {
                         message_input_overall_container.visibility = View.VISIBLE
-                        blocked_txt.visibility = View.GONE
+                        blocked_info_card.visibility = View.GONE
                     }
-                } else {
-
-                }
-                if (_childKey == FirebaseAuth.getInstance().currentUser!!.uid) {
-                    if (_childValue!!.containsKey(this@ChatActivity.intent.getStringExtra("uid"))) {
+                } else if (param1.key == currentUserUid) {
+                    if (_childValue.containsKey(targetUid)) {
                         message_input_overall_container.visibility = View.GONE
                         unblock_btn.visibility = View.VISIBLE
+                        blocked_info_card.visibility = View.GONE
                     } else {
                         message_input_overall_container.visibility = View.VISIBLE
                         unblock_btn.visibility = View.GONE
                     }
-                } else {
-
                 }
             }
 
             override fun onChildChanged(param1: DataSnapshot, param2: String?) {
                 val _ind = object : GenericTypeIndicator<HashMap<String, Any>>() {}
-                val _childKey = param1.key
                 val _childValue = param1.getValue(_ind)
-                if (_childKey == this@ChatActivity.intent.getStringExtra("uid")) {
-                    if (_childValue!!.containsKey(FirebaseAuth.getInstance().currentUser!!.uid)) {
+                if (_childValue == null) return
+
+                val targetUid = this@ChatActivity.intent.getStringExtra("uid")
+                val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
+
+                if (param1.key == targetUid) {
+                    if (_childValue.containsKey(currentUserUid)) {
                         message_input_overall_container.visibility = View.GONE
-                        blocked_txt.visibility = View.VISIBLE
+                        blocked_info_card.visibility = View.VISIBLE
+                        unblock_btn.visibility = View.GONE
                     } else {
                         message_input_overall_container.visibility = View.VISIBLE
-                        blocked_txt.visibility = View.GONE
+                        blocked_info_card.visibility = View.GONE
                     }
-                } else {
-
+                } else if (param1.key == currentUserUid) {
+                    if (_childValue.containsKey(targetUid)) {
+                        message_input_overall_container.visibility = View.GONE
+                        unblock_btn.visibility = View.VISIBLE
+                        blocked_info_card.visibility = View.GONE
+                    } else {
+                        message_input_overall_container.visibility = View.VISIBLE
+                        unblock_btn.visibility = View.GONE
+                    }
                 }
             }
 
@@ -559,8 +476,8 @@ class ChatActivity : AppCompatActivity() {
 
         _upload_selected_img_upload_progress_listener = OnProgressListener { param1 ->
             val _progressValue = (100.0 * param1.bytesTransferred) / param1.totalByteCount
-            img_upload_prog.setProgress(_progressValue.toInt())
-            img_upload_prog.visibility = View.VISIBLE
+            overall_upload_prog.progress = _progressValue.toInt()
+            overall_upload_prog.visibility = View.VISIBLE
             _LoadingDialog(true)
         }
 
@@ -578,7 +495,7 @@ class ChatActivity : AppCompatActivity() {
             ChatSendMap["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
             ChatSendMap["TYPE"] = "MESSAGE"
             ChatSendMap["message_text"] = message_et.text.toString().trim()
-            ChatSendMap["message_image_uri"] = _downloadUrl
+            ChatSendMap["message_image_uris"] = _downloadUrl
             ChatSendMap["message_state"] = "sended"
             if (ReplyMessageID != "null") {
                 ChatSendMap["replied_message_id"] = ReplyMessageID
@@ -606,17 +523,11 @@ class ChatActivity : AppCompatActivity() {
             message_et.setText("")
             filename = ""
             file = ""
-            devider2.visibility = View.GONE
-            devider1.visibility = View.GONE
-            devider.visibility = View.GONE
-            more_send_type_btn.visibility = View.GONE
-            send_type_voice_btn.visibility = View.GONE
-            attachment_btn.visibility = View.GONE
-            _TransitionManager(camera_gallery_btn_container_round, 200.0)
-            message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
+            selectedImagesPaths.clear()
+            uploadProgressMap.clear()
+            updateSelectedImagesUI()
+            file_type_expand = 0.0
 
-            img_container_layout.visibility = View.GONE
-            img_upload_prog.visibility = View.GONE
             FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
             ChatSendMap.clear()
             ChatInboxSend.clear()
@@ -697,19 +608,42 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    private fun initializeLogic() {
-        if (message_et.text.toString().trim().equals("")) {
-            _TransitionManager(message_input_overall_container, 250.0)
-            message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.chat_menu, menu)
+        return true
+    }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_video_call -> {
+                // Handle video call
+                return true
+            }
+            R.id.action_call -> {
+                // Handle audio call
+                return true
+            }
+            R.id.action_info -> {
+                i.setClass(applicationContext, Chat2ndUserMoreSettingsActivity::class.java)
+                i.putExtra("uid", this.intent.getStringExtra("uid"))
+                startActivity(i)
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun initializeLogic() {
+        if (message_et.text.toString().trim().isEmpty()) {
+            _TransitionManager(message_input_overall_container, 250.0)
+            // message_input_outlined_round.orientation = LinearLayout.HORIZONTAL // Not needed for MaterialCardView
         } else {
             _TransitionManager(message_input_overall_container, 250.0)
-            message_input_outlined_round.orientation = LinearLayout.VERTICAL
-
+            // message_input_outlined_round.orientation = LinearLayout.VERTICAL // Not needed for MaterialCardView
         }
         SecondUserAvatar = "null"
         ReplyMessageID = "null"
-        path = ""
+        // path = "" // This is now handled by selectedImagesPaths
         ChatMessagesLimit = 80.0
         file_type_expand = 0.0
         block_switch = 0.0
@@ -755,24 +689,31 @@ class ChatActivity : AppCompatActivity() {
             }
 
             private fun animateView(view: View, percentage: Float) {
-                view.alpha = percentage // Adjust opacity based on percentage of visibility
+                view.alpha = percentage
             }
         })
-        blocked_txt.text = Html.fromHtml("<p>You can't reply to this conversation. <a href=\"https://example.com/learn-more\" style=\"color: #2962FF;\"><b>Learn more</b></a></p>")
-        camera_gallery_btn_container_round.background = GradientDrawable().apply { setCornerRadius(360f); setStroke(0, Color.TRANSPARENT); setColor(-0xf0f3f8) }
-        send_round_btn.background = GradientDrawable().apply { setCornerRadius(360f); setStroke(0, Color.TRANSPARENT); setColor(-0xf0f3f8) }
-        bottomAudioRecorderSend.background = GradientDrawable().apply { setCornerRadius(360f); setStroke(0, Color.TRANSPARENT); setColor(-0xf0f3f8) }
-        message_input_outlined_round.background = GradientDrawable().apply { setCornerRadius(95f); setStroke(3, -0x383839); setColor(-0x1) }
-        img_container_layout.visibility = View.GONE
-        devider2.visibility = View.GONE
-        devider1.visibility = View.GONE
-        devider.visibility = View.GONE
-        more_send_type_btn.visibility = View.GONE
-        send_type_voice_btn.visibility = View.GONE
-        attachment_btn.visibility = View.GONE
-        message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
 
-        _ImgRound(topProfileLayoutProfileImage, 100.0)
+        // Use new blocked_info_card
+        blocked_txt.text = Html.fromHtml("<p>You can't reply to this conversation. <a href=\"https://example.com/learn-more\" style=\"color: #2962FF;\"><b>Learn more</b></a></p>")
+        blocked_info_card.visibility = View.GONE
+        unblock_btn.visibility = View.GONE
+
+        // Removed camera_gallery_btn_container_round background
+        // Removed send_round_btn background
+
+        // MaterialCardView styling from XML
+        // message_input_outlined_round.background = GradientDrawable().apply { setCornerRadius(95f); setStroke(3, -0x383839); setColor(-0x1) }
+
+        selected_attachments_container.visibility = View.GONE
+        overall_upload_prog.visibility = View.GONE
+
+        // Control visibility of action buttons
+        attachment_btn.visibility = View.GONE // Hidden by default, can be shown based on message_et state or expand logic
+        send_type_voice_btn.visibility = View.GONE // Hidden by default
+
+        // Replaced devider_mic_camera, devider, devider1, devider2
+
+        // _ImgRound(topProfileLayoutProfileImage, 100.0) // Handled by ShapeableImageView style
         _stateColor(-0x1, -0x1)
         _ScrollingText(topProfileLayoutUsername)
     }
@@ -783,34 +724,42 @@ class ChatActivity : AppCompatActivity() {
         when (requestCode) {
             REQ_CD_IMAGE_PICKER -> {
                 if (resultCode == Activity.RESULT_OK) {
-                    val _filePath = ArrayList<String>()
                     if (data != null) {
                         if (data.clipData != null) {
-                            for (_index in 0 until data.clipData!!.itemCount) {
-                                val _item = data.clipData!!.getItemAt(_index)
-                                _filePath.add(FileUtil.convertUriToFilePath(applicationContext, _item.uri).toString())
+                            for (idx in 0 until data.clipData!!.itemCount) {
+                                val uri = data.clipData!!.getItemAt(idx).uri
+                                FileUtil.convertUriToFilePath(applicationContext, uri)?.let { filePath ->
+                                    selectedImagesPaths.add(filePath)
+                                }
                             }
-                        } else {
-                            _filePath.add(FileUtil.convertUriToFilePath(applicationContext, data.data).toString())
+                        } else if (data.data != null) {
+                            val uri = data.data
+                            FileUtil.convertUriToFilePath(applicationContext, uri)?.let { filePath ->
+                                selectedImagesPaths.add(filePath)
+                            }
                         }
                     }
-                    file = _filePath[0]
-                    path = _filePath[0]
-                    filename = Uri.parse(file).lastPathSegment.toString()
-                    img_name.text = filename
-                    selected_img_preview.setImageBitmap(FileUtil.decodeSampleBitmapFromPath(_filePath[0], 1024, 1024))
-                    _TransitionManager(message_input_outlined_round, 150.0)
-                    message_input_outlined_round.orientation = LinearLayout.VERTICAL
-
-                    img_container_layout.visibility = View.VISIBLE
-                    img_upload_prog.visibility = View.GONE
-                } else {
-
+                    updateSelectedImagesUI()
                 }
             }
-            else -> {
+        }
+    }
+
+    private fun updateSelectedImagesUI() {
+        if (selectedImagesPaths.isNotEmpty()) {
+            selected_attachments_container.visibility = View.VISIBLE
+            (selected_images_recycler.adapter as? SelectedImagesAdapter)?.notifyDataSetChanged()
+            // Adjust message input layout if needed
+            // message_input_outlined_round.orientation = LinearLayout.VERTICAL // Removed for MaterialCardView
+            send_round_btn.setImageResource(R.drawable.ic_send_48px)
+        } else {
+            selected_attachments_container.visibility = View.GONE
+            if (message_et.text.isEmpty()) {
+                send_round_btn.setImageResource(R.drawable.ic_thumb_up_48px)
+                // message_input_outlined_round.orientation = LinearLayout.HORIZONTAL // Removed for MaterialCardView
             }
         }
+        _TransitionManager(message_input_overall_container, 150.0)
     }
 
     override fun onBackPressed() {
@@ -819,19 +768,16 @@ class ChatActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        // Use this.intent to refer to the Activity's original intent
         FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
     }
 
     override fun onStop() {
         super.onStop()
-        // Use this.intent to refer to the Activity's original intent
         FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        // Use this.intent to refer to the Activity's original intent
         FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
     }
 
@@ -949,18 +895,16 @@ class ChatActivity : AppCompatActivity() {
                     ChatSendMap["message_text"] = image_url_input.text.toString().trim()
                     ChatSendMap["message_state"] = "sended"
                     ChatSendMap["push_date"] = cc.timeInMillis.toString()
-                    // Updating the chat reference
                     FirebaseDatabase.getInstance().getReference("skyline/chats")
-                        .child(this@ChatActivity.intent.getStringExtra("uid")!!)  // Replacing with the UID from the intent extras
-                        .child(FirebaseAuth.getInstance().currentUser!!.uid)  // Replacing with the current user UID
-                        .child(_data[_position.toInt()]["key"].toString())  // Using the key from your data
-                        .updateChildren(ChatSendMap)  // Ensure ChatSendMap contains the necessary data for the update
-                    // Updating the chat reference
+                        .child(this@ChatActivity.intent.getStringExtra("uid")!!)
+                        .child(FirebaseAuth.getInstance().currentUser!!.uid)
+                        .child(_data[_position.toInt()]["key"].toString())
+                        .updateChildren(ChatSendMap)
                     FirebaseDatabase.getInstance().getReference("skyline/chats")
-                        .child(FirebaseAuth.getInstance().currentUser!!.uid)  // My UID
-                        .child(this@ChatActivity.intent.getStringExtra("uid")!!)  // His UID from the intent extras
-                        .child(_data[_position.toInt()]["key"].toString())  // Using the key from your data
-                        .updateChildren(ChatSendMap)  // Ensure ChatSendMap contains the necessary data for the update
+                        .child(FirebaseAuth.getInstance().currentUser!!.uid)
+                        .child(this@ChatActivity.intent.getStringExtra("uid")!!)
+                        .child(_data[_position.toInt()]["key"].toString())
+                        .updateChildren(ChatSendMap)
                     cd!!.dismiss()
                 } else {
                     SketchwareUtil.showMessage(applicationContext, "Can't be empty")
@@ -975,8 +919,6 @@ class ChatActivity : AppCompatActivity() {
         val left = (_l * dpRatio).toInt()
         val top = (_t * dpRatio).toInt()
         val bottom = (_b * dpRatio).toInt()
-
-        val _default = false
 
         val p = _view.layoutParams
         if (p is LinearLayout.LayoutParams) {
@@ -1015,7 +957,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     fun _getUserReference() {
-        val getUserReference = FirebaseDatabase.getInstance().getReference("skyline/users").child(this.intent.getStringExtra("uid")!!) // Use this.intent
+        val getUserReference = FirebaseDatabase.getInstance().getReference("skyline/users").child(this.intent.getStringExtra("uid")!!)
         getUserReference.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(@NonNull dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -1123,7 +1065,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     fun _getChatMessagesRef() {
-        val getChatsMessages = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this.intent.getStringExtra("uid")!!).limitToLast(ChatMessagesLimit.toInt()) // Use this.intent
+        val getChatsMessages = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this.intent.getStringExtra("uid")!!).limitToLast(ChatMessagesLimit.toInt())
         getChatsMessages.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(@NonNull dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -1233,7 +1175,7 @@ class ChatActivity : AppCompatActivity() {
             val mMainHandler = Handler(Looper.getMainLooper())
 
             mExecutorService.execute {
-                val getChatsMessages = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).limitToLast(ChatMessagesLimit.toInt()) // Use this.intent
+                val getChatsMessages = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).limitToLast(ChatMessagesLimit.toInt())
                 getChatsMessages.addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(@NonNull dataSnapshot: DataSnapshot) {
                         mMainHandler.post {
@@ -1270,15 +1212,14 @@ class ChatActivity : AppCompatActivity() {
     }
 
     fun _DeleteMessageDialog( _data: ArrayList<HashMap<String, Any>>, _position: Double) {
-        // Material Delete Dialog
         val zorry = MaterialAlertDialogBuilder(this@ChatActivity)
 
         zorry.setTitle("Delete")
         zorry.setMessage("Are you sure you want to delete this message. Please confirm your decision.")
         zorry.setIcon(R.drawable.popup_ic_3)
         zorry.setPositiveButton("Delete") { _dialog, _which ->
-            FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(_data[_position.toInt()]["key"].toString()).removeValue() // Use this.intent
-            FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(_data[_position.toInt()]["key"].toString()).removeValue() // Use this.intent
+            FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(_data[_position.toInt()]["key"].toString()).removeValue()
+            FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(_data[_position.toInt()]["key"].toString()).removeValue()
         }
         zorry.setNegativeButton("No") { _dialog, _which ->
 
@@ -1301,7 +1242,7 @@ class ChatActivity : AppCompatActivity() {
 
         var seconds = time_diff / 1000
         var minutes = seconds / 60
-        val hours = minutes / 60
+        var hours = minutes / 60
         val days = hours / 24
         val weeks = days / 7
         val months = days / 30
@@ -1354,7 +1295,6 @@ class ChatActivity : AppCompatActivity() {
 
     fun _textview_mh( _txt: TextView, _value: String) {
         _txt.movementMethod = LinkMovementMethod.getInstance()
-        //_txt.setTextIsSelectable(true);
         updateSpan(_value, _txt)
     }
 
@@ -1365,49 +1305,42 @@ class ChatActivity : AppCompatActivity() {
         var offset = 0
 
         while (matcher.find()) {
-            var start = matcher.start() + offset
-            var end = matcher.end() + offset
+            val start = matcher.start() + offset
+            val end = matcher.end() + offset
 
             if (matcher.group(3) != null) {
-                // For mentions or hashtags
                 val span = ProfileSpan()
                 ssb.setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             } else if (matcher.group(4) != null) {
-                // For bold text (**bold**)
-                val boldText = matcher.group(4) // Extract text inside **
+                val boldText = matcher.group(4)
                 ssb.replace(start, end, boldText)
                 ssb.setSpan(StyleSpan(Typeface.BOLD), start, start + boldText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                offset -= 4 // Update offset for bold text replacement
+                offset -= 4
             } else if (matcher.group(5) != null) {
-                // For italic text (__italic__)
                 val italicText = matcher.group(5)
                 ssb.replace(start, end, italicText)
                 ssb.setSpan(StyleSpan(Typeface.ITALIC), start, start + italicText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                offset -= 4 // Update offset for italic text replacement
+                offset -= 4
             } else if (matcher.group(6) != null) {
-                // For strikethrough text (~~strikethrough~~)
                 val strikethroughText = matcher.group(6)
                 ssb.replace(start, end, strikethroughText)
                 ssb.setSpan(StrikethroughSpan(), start, start + strikethroughText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                offset -= 4 // Update offset for strikethrough text replacement
+                offset -= 4
             } else if (matcher.group(7) != null) {
-                // For underline text (_underline_)
                 val underlineText = matcher.group(7)
                 ssb.replace(start, end, underlineText)
                 ssb.setSpan(UnderlineSpan(), start, start + underlineText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                offset -= 2 // Update offset for underline text replacement
+                offset -= 2
             } else if (matcher.group(8) != null) {
-                // For italic text (*italic*)
                 val italicText = matcher.group(8)
                 ssb.replace(start, end, italicText)
                 ssb.setSpan(StyleSpan(Typeface.ITALIC), start, start + italicText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                offset -= 2 // Update offset for italic text replacement
+                offset -= 2
             } else if (matcher.group(9) != null) {
-                // For bold-italic text (///bold-italic///)
                 val boldItalicText = matcher.group(9)
                 ssb.replace(start, end, boldItalicText)
                 ssb.setSpan(StyleSpan(Typeface.BOLD_ITALIC), start, start + boldItalicText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                offset -= 6 // Update offset for bold-italic text replacement
+                offset -= 6
             }
         }
         _txt.text = ssb
@@ -1416,27 +1349,24 @@ class ChatActivity : AppCompatActivity() {
     private inner class ProfileSpan : ClickableSpan() {
 
         override fun onClick(view: View) {
-
             if (view is TextView) {
                 val tv = view
-
                 if (tv.text is Spannable) {
                     val sp = tv.text as Spannable
-
                     val start = sp.getSpanStart(this)
                     val end = sp.getSpanEnd(this)
                     object_clicked = sp.subSequence(start, end).toString()
                     handle = object_clicked.replace("@", "")
                     val getReference = FirebaseDatabase.getInstance().getReference()
                         .child("synapse/username")
-                        .child(handle)  // This points directly to "synapse/username/[handle]"
+                        .child(handle)
                     getReference.addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(@NonNull dataSnapshot: DataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 if (dataSnapshot.child("uid").getValue(String::class.java) != "null") {
-                                    i.setClass(applicationContext, ProfileActivity::class.java) // Use 'i'
+                                    i.setClass(applicationContext, ProfileActivity::class.java)
                                     i.putExtra("uid", dataSnapshot.child("uid").getValue(String::class.java))
-                                    startActivity(i) // Use 'i'
+                                    startActivity(i)
                                 } else {
 
                                 }
@@ -1445,14 +1375,11 @@ class ChatActivity : AppCompatActivity() {
                         }
 
                         override fun onCancelled(@NonNull databaseError: DatabaseError) {
-                            //        swipeLayout.setVisibility(View.GONE);
-                            //noInternetBody.setVisibility(View.VISIBLE);
-                            //        loadingBody.setVisibility(View.GONE);
+
                         }
                     })
                 }
             }
-
         }
 
         override fun updateDrawState(ds: TextPaint) {
@@ -1475,120 +1402,111 @@ class ChatActivity : AppCompatActivity() {
     }
 
     fun _send_btn() {
-        if (path == "") {
-            if (!message_et.text.toString().trim().equals("")) {
-                cc = Calendar.getInstance()
-                val uniqueMessageKey = main.push().key
-                ChatSendMap = HashMap()
-                ChatSendMap["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
-                ChatSendMap["TYPE"] = "MESSAGE"
-                ChatSendMap["message_text"] = message_et.text.toString().trim()
-                ChatSendMap["message_state"] = "sended"
-                if (ReplyMessageID != "null") {
-                    ChatSendMap["replied_message_id"] = ReplyMessageID
-                }
-                ChatSendMap["key"] = uniqueMessageKey!!
-                ChatSendMap["push_date"] = cc.timeInMillis.toString()
-                FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this.intent.getStringExtra("uid")!!).child(uniqueMessageKey).updateChildren(ChatSendMap) // Use this.intent
-                FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(uniqueMessageKey).updateChildren(ChatSendMap) // Use this.intent
-                ChatInboxSend = HashMap()
-                ChatInboxSend["uid"] = this.intent.getStringExtra("uid")!! // Use this.intent
-                ChatInboxSend["TYPE"] = "MESSAGE"
-                ChatInboxSend["last_message_uid"] = FirebaseAuth.getInstance().currentUser!!.uid
-                ChatInboxSend["last_message_text"] = message_et.text.toString().trim()
-                ChatInboxSend["last_message_state"] = "sended"
-                ChatInboxSend["push_date"] = cc.timeInMillis.toString()
-                FirebaseDatabase.getInstance().getReference("skyline/inbox").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this.intent.getStringExtra("uid")!!).updateChildren(ChatInboxSend) // Use this.intent
-                ChatInboxSend2 = HashMap()
-                ChatInboxSend2["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
-                ChatInboxSend2["TYPE"] = "MESSAGE"
-                ChatInboxSend2["last_message_uid"] = FirebaseAuth.getInstance().currentUser!!.uid
-                ChatInboxSend2["last_message_text"] = message_et.text.toString().trim()
-                ChatInboxSend2["last_message_state"] = "sended"
-                ChatInboxSend2["push_date"] = cc.timeInMillis.toString()
-                FirebaseDatabase.getInstance().getReference("skyline/inbox").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).updateChildren(ChatInboxSend2) // Use this.intent
-                message_et.setText("")
-                devider2.visibility = View.GONE
-                devider1.visibility = View.GONE
-                devider.visibility = View.GONE
-                more_send_type_btn.visibility = View.GONE
-                send_type_voice_btn.visibility = View.GONE
-                attachment_btn.visibility = View.GONE
-                mMessageReplyLayout.visibility = View.GONE
-                _TransitionManager(camera_gallery_btn_container_round, 200.0)
-                message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
+        val messageText = message_et.text.toString().trim()
 
-                FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue() // Use this.intent
-                ChatSendMap.clear()
-                ChatInboxSend.clear()
-                ChatInboxSend2.clear()
-                ReplyMessageID = "null"
-            }
-        } else {
-            _LoadingDialog(true)
-            ImageUploader.uploadImage(path, object : ImageUploader.UploadCallback {
-                override fun onUploadComplete(imageUrl: String) {
-                    path = ""
-                    _LoadingDialog(false)
-                    cc = Calendar.getInstance()
-                    val uniqueMessageKey = main.push().key
-                    ChatSendMap = HashMap()
-                    ChatSendMap["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
-                    ChatSendMap["TYPE"] = "MESSAGE"
-                    ChatSendMap["message_text"] = message_et.text.toString().trim()
-                    ChatSendMap["message_image_uri"] = imageUrl
-                    ChatSendMap["message_state"] = "sended"
-                    if (ReplyMessageID != "null") {
-                        ChatSendMap["replied_message_id"] = ReplyMessageID
-                    }
-                    ChatSendMap["key"] = uniqueMessageKey!!
-                    ChatSendMap["push_date"] = cc.timeInMillis.toString()
-                    FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(uniqueMessageKey).updateChildren(ChatSendMap) // Use this.intent
-                    FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(uniqueMessageKey).updateChildren(ChatSendMap) // Use this.intent
-                    ChatInboxSend = HashMap()
-                    ChatInboxSend["uid"] = this@ChatActivity.intent.getStringExtra("uid")!! // Use this.intent
-                    ChatInboxSend["TYPE"] = "MESSAGE"
-                    ChatInboxSend["last_message_uid"] = FirebaseAuth.getInstance().currentUser!!.uid
-                    ChatInboxSend["last_message_text"] = message_et.text.toString().trim()
-                    ChatInboxSend["last_message_state"] = "sended"
-                    ChatInboxSend["push_date"] = cc.timeInMillis.toString()
-                    FirebaseDatabase.getInstance().getReference("skyline/inbox").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).updateChildren(ChatInboxSend) // Use this.intent
-                    ChatInboxSend2 = HashMap()
-                    ChatInboxSend2["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
-                    ChatInboxSend2["TYPE"] = "MESSAGE"
-                    ChatInboxSend2["last_message_uid"] = FirebaseAuth.getInstance().currentUser!!.uid
-                    ChatInboxSend2["last_message_text"] = message_et.text.toString().trim()
-                    ChatInboxSend2["last_message_state"] = "sended"
-                    ChatInboxSend2["push_date"] = cc.timeInMillis.toString()
-                    FirebaseDatabase.getInstance().getReference("skyline/inbox").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).updateChildren(ChatInboxSend2) // Use this.intent
-                    message_et.setText("")
-                    filename = ""
-                    file = ""
-                    file_type_expand = 0.0
-                    devider2.visibility = View.GONE
-                    devider1.visibility = View.GONE
-                    devider.visibility = View.GONE
-                    more_send_type_btn.visibility = View.GONE
-                    send_type_voice_btn.visibility = View.GONE
-                    attachment_btn.visibility = View.GONE
-                    _TransitionManager(camera_gallery_btn_container_round, 200.0)
-                    message_input_outlined_round.orientation = LinearLayout.HORIZONTAL
-
-                    img_container_layout.visibility = View.GONE
-                    img_upload_prog.visibility = View.GONE
-                    FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue() // Use this.intent
-                    ChatSendMap.clear()
-                    ChatInboxSend.clear()
-                    ChatInboxSend2.clear()
-                    ReplyMessageID = "null"
-                    mMessageReplyLayout.visibility = View.GONE
-                }
-
-                override fun onUploadError(errorMessage: String) {
-                    SketchwareUtil.showMessage(applicationContext, "Failed to upload...")
-                }
-            })
+        if (selectedImagesPaths.isEmpty() && messageText.isEmpty()) {
+            SketchwareUtil.showMessage(applicationContext, "Message or image cannot be empty.")
+            return
         }
+
+        _LoadingDialog(true)
+        overall_upload_prog.visibility = View.VISIBLE
+        overall_upload_prog.progress = 0
+
+        if (selectedImagesPaths.isNotEmpty()) {
+            val uploadTasks = ArrayList<Task<Uri>>()
+            val uploadedImageUrls = ArrayList<String>()
+
+            selectedImagesPaths.forEachIndexed { index, imagePath ->
+                (selected_images_recycler.adapter as? SelectedImagesAdapter)?.updateProgress(imagePath, 0)
+
+                val uploadTask = ImageUploader.uploadImageWithProgress(imagePath,
+                    object : ImageUploader.UploadProgressListener {
+                        override fun onProgress(filePath: String, progress: Int) {
+                            uploadProgressMap[filePath] = progress
+                            (selected_images_recycler.adapter as? SelectedImagesAdapter)?.updateProgress(filePath, progress)
+                            var totalProgress = 0
+                            uploadProgressMap.values.forEach { totalProgress += it }
+                            overall_upload_prog.progress = totalProgress / selectedImagesPaths.size
+                        }
+                    })
+
+                uploadTask.addOnSuccessListener { uri ->
+                    uploadedImageUrls.add(uri.toString())
+                }.addOnFailureListener { e ->
+                    SketchwareUtil.showMessage(applicationContext, "Failed to upload image: ${e.message}")
+                }
+                uploadTasks.add(uploadTask)
+            }
+
+            Tasks.whenAllComplete(uploadTasks)
+                .addOnCompleteListener { allTasks ->
+                    _LoadingDialog(false)
+                    overall_upload_prog.visibility = View.GONE
+                    if (allTasks.isSuccessful) {
+                        _sendChatMessage(messageText, uploadedImageUrls)
+                    } else {
+                        SketchwareUtil.showMessage(applicationContext, "Some image uploads failed.")
+                        selectedImagesPaths.clear()
+                        uploadProgressMap.clear()
+                        updateSelectedImagesUI()
+                    }
+                }
+        } else {
+            _sendChatMessage(messageText, emptyList())
+        }
+    }
+
+    private fun _sendChatMessage(messageText: String, imageUrls: List<String>) {
+        cc = Calendar.getInstance()
+        val uniqueMessageKey = main.push().key
+
+        ChatSendMap = HashMap()
+        ChatSendMap["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
+        ChatSendMap["TYPE"] = "MESSAGE"
+        ChatSendMap["message_text"] = messageText
+        if (imageUrls.isNotEmpty()) {
+            ChatSendMap["message_image_uris"] = imageUrls.joinToString(",")
+        }
+        ChatSendMap["message_state"] = "sended"
+        if (ReplyMessageID != "null") {
+            ChatSendMap["replied_message_id"] = ReplyMessageID
+        }
+        ChatSendMap["key"] = uniqueMessageKey!!
+        ChatSendMap["push_date"] = cc.timeInMillis.toString()
+
+        FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this.intent.getStringExtra("uid")!!).child(uniqueMessageKey).updateChildren(ChatSendMap)
+        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(uniqueMessageKey).updateChildren(ChatSendMap)
+
+        ChatInboxSend = HashMap()
+        ChatInboxSend["uid"] = this.intent.getStringExtra("uid")!!
+        ChatInboxSend["TYPE"] = "MESSAGE"
+        ChatInboxSend["last_message_uid"] = FirebaseAuth.getInstance().currentUser!!.uid
+        ChatInboxSend["last_message_text"] = if (messageText.isNotEmpty()) messageText else "Sent image(s)"
+        ChatInboxSend["last_message_state"] = "sended"
+        ChatInboxSend["push_date"] = cc.timeInMillis.toString()
+        FirebaseDatabase.getInstance().getReference("skyline/inbox").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this.intent.getStringExtra("uid")!!).updateChildren(ChatInboxSend)
+
+        ChatInboxSend2 = HashMap()
+        ChatInboxSend2["uid"] = FirebaseAuth.getInstance().currentUser!!.uid
+        ChatInboxSend2["TYPE"] = "MESSAGE"
+        ChatInboxSend2["last_message_uid"] = FirebaseAuth.getInstance().currentUser!!.uid
+        ChatInboxSend2["last_message_text"] = if (messageText.isNotEmpty()) messageText else "Sent image(s)"
+        ChatInboxSend2["last_message_state"] = "sended"
+        ChatInboxSend2["push_date"] = cc.timeInMillis.toString()
+        FirebaseDatabase.getInstance().getReference("skyline/inbox").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).updateChildren(ChatInboxSend2)
+
+        message_et.setText("")
+        selectedImagesPaths.clear()
+        uploadProgressMap.clear()
+        updateSelectedImagesUI()
+
+        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("typing-message").removeValue()
+        ChatSendMap.clear()
+        ChatInboxSend.clear()
+        ChatInboxSend2.clear()
+        ReplyMessageID = "null"
+        mMessageReplyLayout.visibility = View.GONE
     }
 
     fun _Block( _uid: String) {
@@ -1599,8 +1517,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     fun _TransitionManager( _view: View, _duration: Double) {
-        val viewgroup = _view as LinearLayout
-
+        val viewgroup = _view as ViewGroup
         val autoTransition = android.transition.AutoTransition()
         autoTransition.duration = _duration.toLong()
         android.transition.TransitionManager.beginDelayedTransition(viewgroup, autoTransition)
@@ -1609,12 +1526,19 @@ class ChatActivity : AppCompatActivity() {
     fun _Unblock_this_user() {
         val blocklistRef = FirebaseDatabase.getInstance().getReference("skyline/blocklist")
         val myUid = FirebaseAuth.getInstance().currentUser!!.uid
-        val uidToRemove = this.intent.getStringExtra("uid") // Use this.intent
+        val uidToRemove = this.intent.getStringExtra("uid")
 
-        blocklistRef.child(myUid).child(uidToRemove!!).removeValue()
-        // This code will restart the activity
-        finish()
-        startActivity(this.intent) // Use this.intent
+        blocklistRef.child(myUid).child(uidToRemove!!).removeValue().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                _getUserReference()
+                message_input_overall_container.visibility = View.VISIBLE
+                unblock_btn.visibility = View.GONE
+                blocked_info_card.visibility = View.GONE
+                SketchwareUtil.showMessage(applicationContext, "User unblocked.")
+            } else {
+                SketchwareUtil.showMessage(applicationContext, "Failed to unblock user: ${task.exception?.message}")
+            }
+        }
     }
 
     fun _LoadingDialog( _visibility: Boolean) {
@@ -1625,16 +1549,13 @@ class ChatActivity : AppCompatActivity() {
                 SynapseLoadingDialog!!.setCanceledOnTouchOutside(false)
 
                 SynapseLoadingDialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE)
-                SynapseLoadingDialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                SynapseLoadingDialog!!.getWindow()?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
             }
             SynapseLoadingDialog!!.show()
             SynapseLoadingDialog!!.setContentView(R.layout.loading_synapse)
 
             val loading_bar_layout = SynapseLoadingDialog!!.findViewById<LinearLayout>(R.id.loading_bar_layout)
-
-
-            //loading_bar_layout.setBackground(new GradientDrawable() { public GradientDrawable getIns(int a, int b) { this.setCornerRadius(a); this.setColor(b); return this; } }.getIns((int)100, 0xFFFFFFFF));
         } else {
             if (SynapseLoadingDialog != null) {
                 SynapseLoadingDialog!!.dismiss()
@@ -1662,9 +1583,7 @@ class ChatActivity : AppCompatActivity() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val _inflater = layoutInflater
-            val _v = _inflater.inflate(R.layout.chat_msg_cv_synapse, null)
-            val _lp = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            _v.layoutParams = _lp
+            val _v = _inflater.inflate(R.layout.chat_msg_cv_synapse, parent, false)
             return ViewHolder(_v)
         }
 
@@ -1694,8 +1613,6 @@ class ChatActivity : AppCompatActivity() {
 
             typingStatusIcon.visibility = View.GONE
             lottie1.visibility = View.GONE
-            val _lp = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            _view.layoutParams = _lp
             val push = Calendar.getInstance()
             mProfileCard.background = GradientDrawable().apply { setCornerRadius(300f); setColor(Color.TRANSPARENT) }
             _ImageColor(typingStatusIcon, -0x424243)
@@ -1712,7 +1629,6 @@ class ChatActivity : AppCompatActivity() {
                 message_layout.gravity = Gravity.CENTER or Gravity.LEFT
                 body.gravity = Gravity.TOP or Gravity.LEFT
                 message_state.visibility = View.GONE
-                // for test
                 mProfileCard.visibility = View.GONE
                 if (SecondUserAvatar == "null_banned") {
                     mProfileImage.setImageResource(R.drawable.banned_avatar)
@@ -1743,20 +1659,17 @@ class ChatActivity : AppCompatActivity() {
                     mRepliedMessageLayoutUsername.setTextColor(-0x111112)
                     mRepliedMessageLayoutMessage.setTextColor(-0x111112)
                     try {
-                        // Retrieve corner radius value from settings
-                        var cornerRadius = 0 // Default value
-
+                        var cornerRadius = 0
                         try {
                             cornerRadius = appSettings.getString("ChatCornerRadius", "")!!.toInt()
                         } catch (e: Exception) {
                             try {
                                 cornerRadius = appSettings.getString("ChatCornerRadius", "")!!.toDouble().toInt()
                             } catch (ex: Exception) {
-                                cornerRadius = 27 // Default radius if parsing fails
+                                cornerRadius = 27
                             }
                         }
 
-                        // Apply the retrieved corner radius to the GradientDrawable
                         val SketchUi = GradientDrawable()
                         val d = applicationContext.resources.displayMetrics.density.toInt()
                         SketchUi.setColor(-0x94b401)
@@ -1784,7 +1697,6 @@ class ChatActivity : AppCompatActivity() {
                     _setMargin(message_layout, 60.0, 0.0, 4.0, 0.0)
                     message_text.setTextColor(-0x1000000)
                     message_state.visibility = View.GONE
-                    // for test
                     mProfileCard.visibility = View.GONE
                     mRepliedMessageLayoutLeftBar.background = GradientDrawable().apply { setCornerRadius(300f); setColor(resources.getColor(R.color.colorPrimary)) }
                     mRepliedMessageLayoutUsername.setTextColor(resources.getColor(R.color.colorPrimary))
@@ -1795,20 +1707,17 @@ class ChatActivity : AppCompatActivity() {
                         Glide.with(applicationContext).load(Uri.parse(SecondUserAvatar)).into(mProfileImage)
                     }
                     try {
-                        // Retrieve corner radius value from settings
-                        var cornerRadius = 0 // Default value
-
+                        var cornerRadius = 0
                         try {
                             cornerRadius = appSettings.getString("ChatCornerRadius", "")!!.toInt()
                         } catch (e: Exception) {
                             try {
                                 cornerRadius = appSettings.getString("ChatCornerRadius", "")!!.toDouble().toInt()
                             } catch (ex: Exception) {
-                                cornerRadius = 27 // Default radius if parsing fails
+                                cornerRadius = 27
                             }
                         }
 
-                        // Apply the retrieved corner radius to the GradientDrawable
                         val SketchUi = GradientDrawable()
                         val d = applicationContext.resources.displayMetrics.density.toInt()
                         SketchUi.setColor(-0x1)
@@ -1833,9 +1742,6 @@ class ChatActivity : AppCompatActivity() {
                         }
                     }
                 }
-                /*
-_textview_mh(message_text, _data.get((int)_position).get("message_text").toString());
-*/
                 TextStylingUtil(message_text.context).applyStyling(_data[_position]["message_text"].toString(), message_text)
                 push.timeInMillis = _data[_position]["push_date"].toString().toDouble().toLong()
                 date.text = SimpleDateFormat("hh:mm a").format(push.time)
@@ -1845,7 +1751,7 @@ _textview_mh(message_text, _data.get((int)_position).get("message_text").toStrin
                         val mMainHandler = Handler(Looper.getMainLooper())
 
                         mExecutorService.execute {
-                            val getRepliedMessageRef = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(_data[_position]["replied_message_id"].toString()) // Use this.intent
+                            val getRepliedMessageRef = FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(_data[_position]["replied_message_id"].toString())
                             getRepliedMessageRef.addListenerForSingleValueEvent(object : ValueEventListener {
                                 override fun onDataChange(@NonNull dataSnapshot: DataSnapshot) {
                                     mMainHandler.post {
@@ -1878,11 +1784,21 @@ _textview_mh(message_text, _data.get((int)_position).get("message_text").toStrin
                 } else {
                     mRepliedMessageLayout.visibility = View.GONE
                 }
-                if (_data[_position].containsKey("message_image_uri")) {
-                    Glide.with(applicationContext).load(Uri.parse(_data[_position]["message_image_uri"].toString())).into(mMessageImageView)
-                    _setMargin(message_text, 0.0, 0.0, 8.0, 0.0)
-                    mMessageImageBody.visibility = View.VISIBLE
-                    mMessageImageView.setOnClickListener { _OpenWebView(_data[_position]["message_image_uri"].toString()) }
+                if (_data[_position].containsKey("message_image_uris")) {
+                    val imageUrlsString = _data[_position]["message_image_uris"].toString()
+                    val imageUrls = imageUrlsString.split(",").map { it.trim() }
+
+                    if (imageUrls.isNotEmpty()) {
+                        Glide.with(applicationContext).load(Uri.parse(imageUrls[0])).into(mMessageImageView)
+                        _setMargin(message_text, 0.0, 0.0, 8.0, 0.0)
+                        mMessageImageBody.visibility = View.VISIBLE
+                        mMessageImageView.setOnClickListener {
+                            _OpenWebView(imageUrls[0])
+                        }
+                    } else {
+                        _setMargin(message_text, 0.0, 0.0, 0.0, 0.0)
+                        mMessageImageBody.visibility = View.GONE
+                    }
                 } else {
                     _setMargin(message_text, 0.0, 0.0, 0.0, 0.0)
                     mMessageImageBody.visibility = View.GONE
@@ -1961,9 +1877,9 @@ _textview_mh(message_text, _data.get((int)_position).get("message_text").toStrin
                 }
                 if (_data[_position]["uid"].toString() != FirebaseAuth.getInstance().currentUser!!.uid) {
                     if (_data[_position]["message_state"].toString() == "sended") {
-                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(_data[_position]["key"].toString()).child("message_state").setValue("seen") // Use this.intent
-                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(_data[_position]["key"].toString()).child("message_state").setValue("seen") // Use this.intent
-                        FirebaseDatabase.getInstance().getReference("skyline/inbox").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("last_message_state").setValue("seen") // Use this.intent
+                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child(_data[_position]["key"].toString()).child("message_state").setValue("seen")
+                        FirebaseDatabase.getInstance().getReference("skyline/chats").child(FirebaseAuth.getInstance().currentUser!!.uid).child(this@ChatActivity.intent.getStringExtra("uid")!!).child(_data[_position]["key"].toString()).child("message_state").setValue("seen")
+                        FirebaseDatabase.getInstance().getReference("skyline/inbox").child(this@ChatActivity.intent.getStringExtra("uid")!!).child(FirebaseAuth.getInstance().currentUser!!.uid).child("last_message_state").setValue("seen")
                     }
                 }
                 lottie1.visibility = View.GONE
@@ -1982,12 +1898,11 @@ _textview_mh(message_text, _data.get((int)_position).get("message_text").toStrin
                 true
             }
             mProfileImage.setOnClickListener {
-                i.setClass(applicationContext, ProfileActivity::class.java) // Use 'i'
-                i.putExtra("uid", this@ChatActivity.intent.getStringExtra("uid")) // Use this.intent
-                startActivity(i) // Use 'i'
+                i.setClass(applicationContext, ProfileActivity::class.java)
+                i.putExtra("uid", this@ChatActivity.intent.getStringExtra("uid"))
+                startActivity(i)
             }
             try {
-                //Retrieve text size from settings
                 try {
                     message_text.textSize = appSettings.getString("ChatTextSize", "")!!.toInt().toFloat()
                     mRepliedMessageLayoutMessage.textSize = appSettings.getString("ChatTextSize", "")!!.toInt().toFloat()
@@ -2009,5 +1924,52 @@ _textview_mh(message_text, _data.get((int)_position).get("message_text").toStrin
         }
 
         inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v)
+    }
+
+    inner class SelectedImagesAdapter(
+        private val selectedPaths: ArrayList<String>,
+        private val progressMap: HashMap<String, Int>
+    ) : RecyclerView.Adapter<SelectedImagesAdapter.SelectedImageViewHolder>() {
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SelectedImageViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_selected_image, parent, false)
+            return SelectedImageViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: SelectedImageViewHolder, position: Int) {
+            val imagePath = selectedPaths[position]
+            Glide.with(holder.itemView.context).load(File(imagePath)).into(holder.imageView)
+            holder.removeButton.setOnClickListener {
+                val removedPath = selectedPaths.removeAt(position)
+                progressMap.remove(removedPath)
+                notifyItemRemoved(position)
+                notifyItemRangeChanged(position, selectedPaths.size)
+                updateSelectedImagesUI()
+            }
+
+            val progress = progressMap[imagePath] ?: 0
+            if (progress > 0 && progress < 100) {
+                holder.progressBar.progress = progress
+                holder.progressBar.visibility = View.VISIBLE
+            } else {
+                holder.progressBar.visibility = View.GONE
+            }
+        }
+
+        override fun getItemCount(): Int = selectedPaths.size
+
+        fun updateProgress(filePath: String, progress: Int) {
+            val index = selectedPaths.indexOf(filePath)
+            if (index != -1) {
+                progressMap[filePath] = progress
+                notifyItemChanged(index)
+            }
+        }
+
+        inner class SelectedImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val imageView: ImageView = itemView.findViewById(R.id.selected_img_preview)
+            val removeButton: ImageView = itemView.findViewById(R.id.remove_selected_img_icon)
+            val progressBar: CircularProgressIndicator = itemView.findViewById(R.id.image_upload_progress)
+        }
     }
 }
