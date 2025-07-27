@@ -20,6 +20,7 @@ import android.webkit.*
 import android.widget.*
 import androidx.annotation.*
 import androidx.appcompat.app.AppCompatActivity
+import android.text.method.LinkMovementMethod
 import androidx.browser.*
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
