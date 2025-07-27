@@ -90,7 +90,7 @@
                         android:layout_height="wrap_content"
                         android:text="Online"
                         android:textAppearance="?attr/textAppearanceLabelMedium"
-                        android:textColor="@color/material_on_surface_variant" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.appbar.MaterialToolbar>
@@ -285,7 +285,7 @@
                             android:visibility="gone"
                             android:indeterminate="false"
                             android:progress="0"
-                            style="@style/Widget.Material3.LinearProgressIndicator.ExtraSmall" />
+                            style="@style/Widget.Material3Expressive.LinearProgressIndicator" />
 
                     </LinearLayout>
 
