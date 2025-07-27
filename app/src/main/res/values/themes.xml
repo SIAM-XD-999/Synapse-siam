@@ -1,6 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--Main App Theme combining all attributes from both files-->
-    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="AppTheme" parent="Theme.Material3Expressive.DynamicColors.DayNight.NoActionBar">
+        <!-- Core Material 3 Color Roles (these will be overridden by dynamic colors on API 31+) -->
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
@@ -28,6 +30,7 @@
         <item name="colorSurfaceInverse">@color/md_theme_inverseSurface</item>
         <item name="colorOnSurfaceInverse">@color/md_theme_inverseOnSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_inversePrimary</item>
+        <!-- Material 3 extended color roles (often used for dynamic color generation too) -->
         <item name="colorPrimaryFixed">@color/md_theme_primaryFixed</item>
         <item name="colorOnPrimaryFixed">@color/md_theme_onPrimaryFixed</item>
         <item name="colorPrimaryFixedDim">@color/md_theme_primaryFixedDim</item>
@@ -47,39 +50,72 @@
         <item name="colorSurfaceContainer">@color/md_theme_surfaceContainer</item>
         <item name="colorSurfaceContainerHigh">@color/md_theme_surfaceContainerHigh</item>
         <item name="colorSurfaceContainerHighest">@color/md_theme_surfaceContainerHighest</item>
+
+        <!-- System UI (Status/Navigation Bar) -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
         <item name="android:windowLightNavigationBar">true</item>
-        <item name="android:fontFamily">@font/product_sans</item>
+
+        <!-- Window Transitions -->
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
         <item name="android:windowAnimationStyle">@null</item>
-        <item name="android:forceDarkAllowed">false</item>
         <item name="android:windowDisablePreview">true</item>
+        <item name="android:forceDarkAllowed">false</item> <!-- Control dark mode behavior -->
+
+        <!-- Typography and Font -->
+        <item name="android:fontFamily">@font/product_sans</item>
+        <!-- Material 3 Typography Styles (inherits from parent theme, but explicitly listed for clarity) -->
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.Material3.DisplayLarge</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.Material3.DisplayMedium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.Material3.DisplaySmall</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Material3.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Material3.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Material3.HeadlineSmall</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Material3.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.Material3.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.Material3.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Material3.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.Material3.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.Material3.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Material3.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.Material3.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.Material3.LabelSmall</item>
+
+        <!-- Shape Appearance for Expressive Design -->
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Material3.Expressive.Small</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Material3.Expressive.Medium</item>
         <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Material3.Expressive.Large</item>
     </style>
-    <!--All additional styles from themes.xml-->
+
+    <!-- App-wide styles that inherit from the main AppTheme or Material3 themes -->
     <style name="AppTheme.FullScreen" parent="AppTheme">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.Material3.Dark.ActionBar">
+        <!-- If you want specific overlays for your app bar, define them here -->
     </style>
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.Material3.Light">
+        <!-- If you want specific overlays for popups, define them here -->
     </style>
+
+    <!-- Custom style for PostCommentsBottomSheetDialog -->
     <style name="PostCommentsBottomSheetDialogStyle" parent="Theme.AppCompat.Light.Dialog">
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">true</item>
     </style>
+
+    <!-- Custom style for HomeCustomTabLayout -->
     <style name="HomeCustomTabLayout" parent="TextAppearance.Material3.TitleMedium">
         <item name="textAllCaps">false</item>
         <item name="android:textSize">14sp</item>
     </style>
+
+    <!-- Custom style for Material Slider Tooltip -->
     <style name="CustomSliderTooltip" parent="Widget.Material3.Tooltip">
         <item name="shapeAppearanceOverlay">@style/TooltipShape</item>
     </style>
@@ -90,6 +126,8 @@
         <item name="cornerSizeBottomLeft">10%</item>
         <item name="cornerSizeBottomRight">10%</item>
     </style>
+
+    <!-- Shape Appearance for Material3 Expressive Components -->
     <style name="ShapeAppearance.Material3.Expressive.Small" parent="ShapeAppearance.Material3.SmallComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">8dp</item>
@@ -102,10 +140,14 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">16dp</item>
     </style>
+
+    <!-- Debug Activity Theme -->
     <style name="AppTheme.DebugActivity" parent="AppTheme">
         <item name="windowActionBar">true</item>
         <item name="windowNoTitle">false</item>
     </style>
+
+    <!-- Collapsing Toolbar Text Appearances -->
     <style name="CollapsingTextExpanded.Material3" parent="TextAppearance.Material3.HeadlineMedium">
         <item name="android:textSize">28sp</item>
         <item name="fontFamily">@font/product_sans</item>
@@ -117,23 +159,22 @@
     <style name="ToolbarTitleFont" parent="TextAppearance.Material3.TitleLarge">
         <item name="fontFamily">@font/product_sans</item>
     </style>
+
+    <!-- Material Alert Dialog with Rounded Corners -->
     <style name="MaterialAlertDialog.Rounded" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-    <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.Dialog.Rounded</item>
-    <item name="materialAlertDialogTitleTextStyle">@style/DialogTitleTextAppearance</item>
-    <item name="materialAlertDialogBodyTextStyle">@style/DialogBodyTextAppearance</item>
-</style>
-
-<style name="ShapeAppearanceOverlay.Dialog.Rounded" parent="">
-    <item name="cornerFamily">rounded</item>
-    <item name="cornerSize">16dp</item>
-</style>
-
-<style name="DialogTitleTextAppearance" parent="MaterialAlertDialog.Material3.Title.Text">
-    <item name="android:textSize">18sp</item>
-    <item name="android:textColor">?attr/colorOnSurface</item>
-</style>
-
-<style name="DialogBodyTextAppearance" parent="MaterialAlertDialog.Material3.Body.Text">
-    <item name="android:textSize">14sp</item>
-</style>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.Dialog.Rounded</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/DialogTitleTextAppearance</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/DialogBodyTextAppearance</item>
+    </style>
+    <style name="ShapeAppearanceOverlay.Dialog.Rounded" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+    <style name="DialogTitleTextAppearance" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+    <style name="DialogBodyTextAppearance" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textSize">14sp</item>
+    </style>
 </resources>

@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- তোমার পুরো styles code এখানে পেস্ট করো -->
-<style name="ShapeAppearanceOverlay.App.CornerSize50Percent" parent="">
+    <!--
+    This file typically contains custom styles for individual widgets or specific UI elements.
+    Most of the global theme attributes (colors, typography, shapes) are set in themes.xml.
+    -->
+
+    <!-- Your existing ShapeAppearanceOverlay style for circular images -->
+    <style name="ShapeAppearanceOverlay.App.CornerSize50Percent" parent="">
         <item name="cornerSize">50%</item>
     </style>
 </resources>
