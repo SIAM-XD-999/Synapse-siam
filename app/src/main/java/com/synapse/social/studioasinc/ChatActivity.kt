@@ -12,6 +12,7 @@ import android.media.*
 import android.net.Uri
 import android.os.*
 import android.text.*
+import android.text.method.LinkMovementMethod // Added this import
 import android.text.style.*
 import android.util.*
 import android.view.*
@@ -20,7 +21,6 @@ import android.webkit.*
 import android.widget.*
 import androidx.annotation.*
 import androidx.appcompat.app.AppCompatActivity
-import android.text.method.LinkMovementMethod
 import androidx.browser.*
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
@@ -902,7 +902,7 @@ class ChatActivity : AppCompatActivity() {
             pop1.dismiss()
         }
         copy.setOnClickListener {
-            (getSystemService(Application.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip = ClipData.newPlainText("clipboard", _data[_position.toInt()]["message_text"].toString())
+            (getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager).setPrimaryClip(ClipData.newPlainText("clipboard", _data[_position.toInt()]["message_text"].toString()))
             vbr.vibrate(48L)
             pop1.dismiss()
         }
@@ -1990,7 +1990,7 @@ _textview_mh(message_text, _data.get((int)_position).get("message_text").toStrin
                     try {
                         message_text.textSize = appSettings.getString("ChatTextSize", "")!!.toDouble().toFloat()
                         mRepliedMessageLayoutMessage.textSize = appSettings.getString("ChatTextSize", "")!!.toDouble().toFloat()
-                    } catch (ex: Exception) { // Changed variable name to ex
+                    } catch (ex: Exception) {
                         message_text.textSize = 16f
                     }
                 }
