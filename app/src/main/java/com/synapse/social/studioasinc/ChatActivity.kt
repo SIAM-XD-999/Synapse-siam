@@ -116,7 +116,7 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var body: CenterCropLinearLayoutNoEffect
     private lateinit var top: CenterCropLinearLayoutNoEffect
     private lateinit var middle: LinearLayout
-    // Removed bottomSpace declaration as it's not in XML
+    // Removed bottomSpace declaration as it's not in XML anymore
     private lateinit var mMessageReplyLayout: MaterialCardView
     private lateinit var message_input_overall_container: LinearLayout
     private lateinit var bottomAudioRecorder: MaterialCardView
@@ -138,8 +138,8 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var noChatText: TextView
     private lateinit var bannedUserInfoIc: ImageView
     private lateinit var bannedUserInfoText: TextView
-    private lateinit var mMessageReplyLayoutBody: LinearLayout // Verified from XML
-    private lateinit var mMessageReplyLayoutSpace: LinearLayout // Verified from XML
+    private lateinit var mMessageReplyLayoutBody: LinearLayout // Re-enabled based on XML
+    private lateinit var mMessageReplyLayoutSpace: LinearLayout // Re-enabled based on XML
     private lateinit var mMessageReplyLayoutBodyIc: ImageView
     private lateinit var mMessageReplyLayoutBodyRight: LinearLayout
     private lateinit var mMessageReplyLayoutBodyCancel: ImageView
@@ -189,7 +189,6 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var upload_selected_img: StorageReference
     private var _upload_selected_img_upload_success_listener: OnCompleteListener<Uri>? = null
     private var _upload_selected_img_download_success_listener: OnSuccessListener<FileDownloadTask.TaskSnapshot>? = null
-    private var _upload_selected_img_delete_success_listener: OnSuccessListener<Any>? = null
     private var _upload_selected_img_upload_progress_listener: OnProgressListener<UploadTask.TaskSnapshot>? = null
     private var _upload_selected_img_download_progress_listener: OnProgressListener<FileDownloadTask.TaskSnapshot>? = null
     private var _upload_selected_img_failure_listener: OnFailureListener? = null
@@ -200,12 +199,13 @@ class ChatActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.chat)
-        initialize(savedInstanceState)
-        FirebaseApp.initializeApp(this)
+        FirebaseApp.initializeApp(this) // Initialize Firebase as early as possible
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE), 1000)
         } else {
+            // Only initialize views and logic if permissions are granted or not needed yet
+            initialize(savedInstanceState)
             initializeLogic()
         }
     }
@@ -213,7 +213,14 @@ class ChatActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1000) {
-            initializeLogic()
+            // Re-check permission after request
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                initialize(null) // Initialize if it wasn't already
+                initializeLogic()
+            } else {
+                SketchwareUtil.showMessage(applicationContext, "Permissions required for full functionality.")
+                // Potentially disable features that rely on these permissions
+            }
         }
     }
 
@@ -221,7 +228,7 @@ class ChatActivity : AppCompatActivity() {
         body = findViewById(R.id.body)
         top = findViewById(R.id.top)
         middle = findViewById(R.id.middle)
-        // bottomSpace = findViewById(R.id.bottomSpace) // Removed, not in XML
+        // Removed bottomSpace, not in XML
         mMessageReplyLayout = findViewById(R.id.mMessageReplyLayout)
         message_input_overall_container = findViewById(R.id.message_input_overall_container)
         bottomAudioRecorder = findViewById(R.id.bottomAudioRecorder)
@@ -243,8 +250,8 @@ class ChatActivity : AppCompatActivity() {
         noChatText = findViewById(R.id.noChatText)
         bannedUserInfoIc = findViewById(R.id.bannedUserInfoIc)
         bannedUserInfoText = findViewById(R.id.bannedUserInfoText)
-        mMessageReplyLayoutBody = findViewById(R.id.mMessageReplyLayoutBody) // Kept, check XML
-        mMessageReplyLayoutSpace = findViewById(R.id.mMessageReplyLayoutSpace) // Kept, check XML
+        mMessageReplyLayoutBody = findViewById(R.id.mMessageReplyLayoutBody) // Un-commented
+        mMessageReplyLayoutSpace = findViewById(R.id.mMessageReplyLayoutSpace) // Un-commented
         mMessageReplyLayoutBodyIc = findViewById(R.id.mMessageReplyLayoutBodyIc)
         mMessageReplyLayoutBodyRight = findViewById(R.id.mMessageReplyLayoutBodyRight)
         mMessageReplyLayoutBodyCancel = findViewById(R.id.mMessageReplyLayoutBodyCancel)
@@ -539,8 +546,6 @@ class ChatActivity : AppCompatActivity() {
             val _totalByteCount = param1.totalByteCount
 
         }
-
-        _upload_selected_img_delete_success_listener = OnSuccessListener { param1 -> _LoadingDialog(false) }
 
         _upload_selected_img_failure_listener = OnFailureListener { param1 ->
             val _message = param1.message
@@ -874,6 +879,7 @@ class ChatActivity : AppCompatActivity() {
                     ChatSendMap["message_uid"] = FirebaseAuth.getInstance().currentUser!!.uid
                     ChatSendMap["message_text"] = image_url_input.text.toString().trim()
                     ChatSendMap["message_state"] = "sended"
+                    ChatSendMap["push_date"] = cc.timeInMillis.toString()
                     FirebaseDatabase.getInstance().getReference("skyline/chats")
                         .child(this@ChatActivity.intent.getStringExtra("uid")!!)
                         .child(FirebaseAuth.getInstance().currentUser!!.uid)
