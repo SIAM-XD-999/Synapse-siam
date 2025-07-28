@@ -1,0 +1,17 @@
+name: Cleanup Failed Workflows
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at midnight (UTC)
+  workflow_dispatch:     # Allows manual triggering
+
+jobs:
+  delete-failed-runs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete failed workflow runs
+        uses: rokroskar/workflow-run-cleanup-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # Default token (no PAT needed)
+          daysToKeep: 1       # Keep runs from the last 24 hours
+          keepMinimumRuns: 5  # Always keep at least 5 runs (even failed)
+          filter: 'completed' # Delete only completed (including failed) runs
